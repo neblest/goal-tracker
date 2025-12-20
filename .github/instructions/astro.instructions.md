@@ -1,7 +1,5 @@
 ---
-description: 
-globs: *.astro
-alwaysApply: false
+applyTo: '.astro'
 ---
 ### Guidelines for Astro
 

@@ -1,113 +1,99 @@
-# AI Rules for {{project-name}}
+# AI Rules for 10x Astro Starter
 
-{{project-description}}
+A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
 
 ## Tech Stack
 
-- Astro 5
-- TypeScript 5
-- React 19
-- Tailwind 4
+- Astro v5.13.7
+- React v19.1.1
+- TypeScript v5
+- Tailwind CSS v4.1.13
 - Shadcn/ui
+- Supabase
 
 ## Project Structure
 
 When introducing changes to the project, always follow the directory structure below:
 
 - `./src` - source code
-- `./src/layouts` - Astro layouts
-- `./src/pages` - Astro pages
+- `./src/layouts` - Astro layouts, like the main `Layout.astro`
+- `./src/pages` - Astro pages, with `index.astro` as the entry point.
 - `./src/pages/api` - API endpoints
-- `./src/middleware/index.ts` - Astro middleware
-- `./src/db` - Supabase clients and types
-- `./src/types.ts` - Shared types for backend and frontend (Entities, DTOs)
-- `./src/components` - Client-side components written in Astro (static) and React (dynamic)
-- `./src/components/ui` - Client-side components from Shadcn/ui
-- `./src/lib` - Services and helpers
-- `./src/assets` - static internal assets
-- `./public` - public assets
+- `./src/middleware` - Astro middleware, especially for Supabase client injection.
+- `./src/db` - Supabase clients (`supabase.client.ts`) and database types (`database.types.ts`).
+- `./src/components` - Client-side components written in Astro (static, e.g., `Welcome.astro`) and React (dynamic)
+- `./src/components/ui` - Client-side components from Shadcn/ui, like `button.tsx`.
+- `./src/lib` - Services and helpers, like `utils.ts` containing the `cn` function.
+- `./src/styles` - Global styles, with `global.css` for Tailwind CSS setup.
+- `./public` - public assets, like `favicon.png`
+- `supabase/migrations` - SQL files for database migrations.
 
-When modifying the directory structure, always update this section.
+## Developer Workflows
+
+### Running the project
+
+- `npm run dev` - Start development server.
+- `npm run build` - Build for production.
+- `npm run preview` - Preview production build.
+
+### Linting and Formatting
+
+- `npm run lint` - Run ESLint to check for code quality.
+- `npm run lint:fix` - Automatically fix ESLint issues.
+- `npm run format` - Format code with Prettier.
+- Husky and lint-staged are set up to automatically lint and format code before each commit.
+
+### Database Migrations
+
+- Create new migration files in `supabase/migrations/`.
+- The filename must follow the format `YYYYMMDDHHmmss_short_description.sql`.
+- Always enable Row Level Security (RLS) on new tables.
+- Create granular RLS policies for `select`, `insert`, `update`, `delete` for `anon` and `authenticated` roles separately.
 
 ## Coding practices
 
-### Guidelines for clean code
+### General Clean Code
 
-- Use feedback from linters to improve the code when making changes.
-- Prioritize error handling and edge cases.
-- Handle errors and edge cases at the beginning of functions.
-- Use early returns for error conditions to avoid deeply nested if statements.
+- Use feedback from linters to improve the code.
+- Use early returns (guard clauses) for error conditions to avoid nested `if` statements.
 - Place the happy path last in the function for improved readability.
-- Avoid unnecessary else statements; use if-return pattern instead.
-- Use guard clauses to handle preconditions and invalid states early.
-- Implement proper error logging and user-friendly error messages.
-- Consider using custom error types or error factories for consistent error handling.
 
-## Frontend
+### Frontend
 
-### General Guidelines
+- Use Astro components (`.astro`) for static content and layouts.
+- Use React components (`.tsx`) for interactive UI elements.
 
-- Use Astro components (.astro) for static content and layout
-- Implement framework components in React only when interactivity is needed
+### Styling with Tailwind CSS & Shadcn/ui
 
-### Guidelines for Styling
+- Use the `cn` utility function from `src/lib/utils.ts` to merge Tailwind CSS classes.
+- For UI components, use `class-variance-authority` to create variants, as seen in `src/components/ui/button.tsx`.
+- Add new Shadcn components using `npx shadcn@latest add [component-name]`.
+- Global styles and Tailwind CSS directives are in `src/styles/global.css`.
 
-#### Tailwind
+### Accessibility (ARIA)
 
-- Use the @layer directive to organize styles into components, utilities, and base layers
-- Use arbitrary values with square brackets (e.g., w-[123px]) for precise one-off designs
-- Implement the Tailwind configuration file for customizing theme, plugins, and variants
-- Leverage the theme() function in CSS for accessing Tailwind theme values
-- Implement dark mode with the dark: variant
-- Use responsive variants (sm:, md:, lg:, etc.) for adaptive designs
-- Leverage state variants (hover:, focus-visible:, active:, etc.) for interactive elements
+- Use ARIA landmarks (`main`, `navigation`, etc.) to identify page regions.
+- Apply appropriate ARIA roles to custom UI elements.
+- Use `aria-expanded`, `aria-controls`, `aria-live`, `aria-label`, `aria-labelledby`, and `aria-describedby` where appropriate.
 
-### Guidelines for Accessibility
+### Astro Guidelines
 
-#### ARIA Best Practices
+- Use Server Endpoints for API routes, with `export const prerender = false`.
+- Use Zod for input validation in API routes.
+- Use `Astro.cookies` for server-side cookie management.
+- Access environment variables via `import.meta.env`.
+- Use middleware (see `src/middleware/index.ts`) for tasks like injecting the Supabase client into `context.locals`.
 
-- Use ARIA landmarks to identify regions of the page (main, navigation, search, etc.)
-- Apply appropriate ARIA roles to custom interface elements that lack semantic HTML equivalents
-- Set aria-expanded and aria-controls for expandable content like accordions and dropdowns
-- Use aria-live regions with appropriate politeness settings for dynamic content updates
-- Implement aria-hidden to hide decorative or duplicative content from screen readers
-- Apply aria-label or aria-labelledby for elements without visible text labels
-- Use aria-describedby to associate descriptive text with form inputs or complex elements
-- Implement aria-current for indicating the current item in a set, navigation, or process
-- Avoid redundant ARIA that duplicates the semantics of native HTML elements
+### React Guidelines
 
-### Guidelines for Astro
+- Use functional components with hooks.
+- **Do not** use Next.js directives like `"use client"`.
+- Extract reusable logic into custom hooks in `src/components/hooks`.
+- Use `React.memo`, `useCallback`, and `useMemo` for performance optimization.
+- Use `useId` for generating unique IDs for accessibility attributes.
 
-- Leverage View Transitions API for smooth page transitions (use ClientRouter)
-- Use content collections with type safety for blog posts, documentation, etc.
-- Leverage Server Endpoints for API routes
-- Use POST, GET  - uppercase format for endpoint handlers
-- Use `export const prerender = false` for API routes
-- Use zod for input validation in API routes
-- Extract logic into services in `src/lib/services`
-- Implement middleware for request/response modification
-- Use image optimization with the Astro Image integration
-- Implement hybrid rendering with server-side rendering where needed
-- Use Astro.cookies for server-side cookie management
-- Leverage import.meta.env for environment variables
+### Backend and Database (Supabase)
 
-### Guidelines for React
-
-- Use functional components with hooks instead of class components
-- Never use "use client" and other Next.js directives as we use React with Astro
-- Extract logic into custom hooks in `src/components/hooks`
-- Implement React.memo() for expensive components that render often with the same props
-- Utilize React.lazy() and Suspense for code-splitting and performance optimization
-- Use the useCallback hook for event handlers passed to child components to prevent unnecessary re-renders
-- Prefer useMemo for expensive calculations to avoid recomputation on every render
-- Implement useId() for generating unique IDs for accessibility attributes
-- Consider using the new useOptimistic hook for optimistic UI updates in forms
-- Use useTransition for non-urgent state updates to keep the UI responsive
-
-### Backend and Database
-
-- Use Supabase for backend services, including authentication and database interactions.
-- Follow Supabase guidelines for security and performance.
+- Use the Supabase client from `context.locals.supabase` in Astro pages and API routes, not by importing `supabaseClient` directly.
+- Use the `SupabaseClient` type from `src/db/supabase.client.ts`, not from `@supabase/supabase-js`.
 - Use Zod schemas to validate data exchanged with the backend.
-- Use supabase from context.locals in Astro routes instead of importing supabaseClient directly
-- Use SupabaseClient type from `src/db/supabase.client.ts`, not from `@supabase/supabase-js`

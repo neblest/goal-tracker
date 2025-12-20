@@ -1,7 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: false
 ---
 # Supabase Astro Initialization
 

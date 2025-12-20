@@ -1,7 +1,5 @@
 ---
-description: 
-globs: *.tsx,*.astro
-alwaysApply: false
+applyTo: '*.tsx,*.astro'
 ---
 ## Frontend
 

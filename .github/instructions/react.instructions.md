@@ -1,7 +1,5 @@
 ---
-description: 
-globs: *.tsx
-alwaysApply: false
+applyTo: '*.tsx'
 ---
 ### Guidelines for React
 
