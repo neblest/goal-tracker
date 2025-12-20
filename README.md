@@ -1,94 +1,117 @@
-# 10x Astro Starter
+# GoalTracker
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+[![Project Status: Active](https://img.shields.io/badge/status-active-success.svg)](https://github.com/your-username/goal-tracker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A web application to help users track, reflect on, and achieve their goals with the help of AI-powered insights.
+
+## Table of Contents
+- [Project Description](#project-description)
+- [Tech Stack](#tech-stack)
+- [Getting Started Locally](#getting-started-locally)
+- [Available Scripts](#available-scripts)
+- [Project Scope](#project-scope)
+- [Project Status](#project-status)
+- [License](#license)
+
+## Project Description
+
+GoalTracker is a Minimum Viable Product (MVP) designed to help users consistently achieve their goals and learn effectively from their experiences. Unlike traditional to-do list applications, GoalTracker emphasizes the process of reflection, progress analysis, and drawing conclusions. It supports this process through AI-generated summaries that analyze user progress, helping them understand their successes and failures to make better-calibrated attempts at achieving their goals in the future.
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+The project is built with a modern tech stack focused on performance, developer experience, and scalability.
 
-## Prerequisites
+**Frontend:**
+- **[Astro](https://astro.build/)**: For building fast, content-focused websites.
+- **[React](https://react.dev/)**: For creating interactive UI components.
+- **[TypeScript](https://www.typescriptlang.org/)**: For static typing and improved code quality.
+- **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
+- **[Shadcn/ui](https://ui.shadcn.com/)**: A collection of accessible and reusable UI components.
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+**Backend:**
+- **[Supabase](https://supabase.com/)**: An open-source Firebase alternative providing a PostgreSQL database, authentication, and a Backend-as-a-Service SDK.
 
-## Getting Started
+**AI:**
+- **[OpenRouter.ai](https://openrouter.ai/)**: A service to access a wide range of AI models for generating summaries and suggestions.
 
-1. Clone the repository:
+**CI/CD & Hosting:**
+- **[GitHub Actions](https://github.com/features/actions)**: For continuous integration and deployment pipelines.
+- **[DigitalOcean](https://www.digitalocean.com/)**: For hosting the application via Docker images.
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+## Getting Started Locally
 
-2. Install dependencies:
+To set up and run the project on your local machine, follow these steps:
 
-```bash
-npm install
-```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/goal-tracker.git
+    cd goal-tracker
+    ```
 
-3. Run the development server:
+2.  **Set up the correct Node.js version.**
+    This project uses Node.js version `22.14.0`. We recommend using a version manager like `nvm`.
+    ```bash
+    nvm install
+    nvm use
+    ```
 
-```bash
-npm run dev
-```
+3.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-4. Build for production:
+4.  **Set up environment variables.**
+    Create a `.env` file in the root of the project and add the necessary environment variables (e.g., for Supabase and OpenRouter).
+    ```env
+    # Example .env file
+    PUBLIC_SUPABASE_URL="your-supabase-url"
+    PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+    OPENROUTER_API_KEY="your-openrouter-api-key"
+    ```
 
-```bash
-npm run build
-```
+5.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    The application will be available at `http://localhost:4321`.
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+The following scripts are available in the `package.json`:
 
-## Project Structure
+-   `npm run dev`: Starts the development server.
+-   `npm run build`: Builds the application for production.
+-   `npm run preview`: Previews the production build locally.
+-   `npm run lint`: Lints the codebase for errors.
+-   `npm run lint:fix`: Automatically fixes linting issues.
+-   `npm run format`: Formats the code using Prettier.
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+## Project Scope
 
-## AI Development Support
+The MVP focuses on the core functionalities required for goal tracking and reflection.
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+### Key Features:
+-   **User Authentication**: Secure registration, login, and logout.
+-   **Goal Management**: Create goals with a name, target value, and deadline.
+-   **Progress Tracking**: Add numerical progress entries with optional notes.
+-   **AI-Powered Summaries**: Receive AI-generated summaries upon goal completion to analyze performance.
+-   **AI-Driven Suggestions**: Get suggestions for new goals based on past successes or failures.
+-   **Goal Iterations**: Retry failed or abandoned goals with adjusted parameters.
+-   **History Tracking**: View the history of all attempts for a given goal.
+-   **Progress Visualization**: A clear progress bar and countdown to the deadline.
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+### Out of Scope for MVP:
+-   Social features (friends, activity feeds, sharing).
+-   Advanced analytics and long-term dashboards.
+-   Third-party integrations (calendars, smartwatches).
+-   Gamification (badges, points, leaderboards).
+-   Push or email notifications.
 
-### Cursor IDE
+## Project Status
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+This project is currently **in active development**. The core features are being built as part of the MVP.
 
 ## License
 
-MIT
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
