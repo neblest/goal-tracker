@@ -1,10 +1,47 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
-import type { CreateGoalCommand, CreateGoalResponseDto, ApiErrorDto } from "../../../types";
-import { assertParentGoalAccessible, createGoal } from "../../../lib/services/goals.service";
-import { SupabaseClient } from "@supabase/supabase-js";
+import type {
+  CreateGoalCommand,
+  CreateGoalResponseDto,
+  ApiErrorDto,
+  GetGoalsQueryDto,
+  GetGoalsResponseDto,
+} from "../../../types";
+import { assertParentGoalAccessible, createGoal, listGoals } from "../../../lib/services/goals.service";
 
 export const prerender = false;
+
+/**
+ * Zod schema for GET /api/goals query parameters
+ *
+ * Validates and normalizes:
+ * - status: enum value (active, completed_success, completed_failure, abandoned)
+ * - q: search query string (1-200 chars, trimmed)
+ * - parentGoalId: valid UUID
+ * - root: boolean flag ("true" or "false")
+ * - sort: created_at (default) or deadline
+ * - order: asc or desc (default desc)
+ * - page: integer >= 1 (default 1)
+ * - pageSize: integer 1-100 (default 20)
+ */
+const getGoalsQuerySchema = z
+  .object({
+    status: z.enum(["active", "completed_success", "completed_failure", "abandoned"]).optional(),
+    q: z.string().trim().min(1).max(200).optional(),
+    parentGoalId: z.string().uuid().optional(),
+    root: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
+    sort: z.enum(["created_at", "deadline"]).default("created_at"),
+    order: z.enum(["asc", "desc"]).default("desc"),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .refine((data) => !(data.root && data.parentGoalId), {
+    message: "Cannot use both 'root=true' and 'parentGoalId' filters simultaneously",
+    path: ["root"],
+  });
 
 /**
  * Zod schema for CreateGoalCommand with domain validation
@@ -33,6 +70,159 @@ const createGoalSchema = z.object({
     }, "Deadline must be in the future"),
   parent_goal_id: z.string().uuid().nullable().optional(),
 });
+
+/**
+ * GET /api/goals - List goals for authenticated user
+ *
+ * Returns paginated list of goals with computed fields.
+ * Supports filtering by status, parent goal, search query, and sorting.
+ *
+ * Test scenarios:
+ * 1. Success (200):
+ *    GET /api/goals?page=1&pageSize=20
+ *    Authorization: Bearer <valid_token>
+ *
+ * 2. With filters (200):
+ *    GET /api/goals?status=active&sort=deadline&order=asc
+ *
+ * 3. Search query (200):
+ *    GET /api/goals?q=run
+ *
+ * 4. Root goals only (200):
+ *    GET /api/goals?root=true
+ *
+ * 5. Validation error - conflicting filters (400):
+ *    GET /api/goals?root=true&parentGoalId=<uuid>
+ *
+ * 6. Validation error - invalid page (400):
+ *    GET /api/goals?page=0
+ *
+ * 7. Unauthenticated (401):
+ *    No Authorization header or invalid token
+ */
+export async function GET(context: APIContext) {
+  try {
+    // Step 1: Parse and validate query parameters
+    const url = new URL(context.request.url);
+    const queryParams = Object.fromEntries(url.searchParams);
+
+    const parseResult = getGoalsQuerySchema.safeParse(queryParams);
+
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "invalid_query_params",
+            message: "Invalid query parameters",
+            details: parseResult.error.flatten(),
+          },
+        } satisfies ApiErrorDto<"invalid_query_params">),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const query: GetGoalsQueryDto = parseResult.data;
+
+    // Step 2: Authentication
+    const supabase = context.locals.supabase;
+
+    // TODO: Remove hardcoded user ID before production deployment
+    const DEV_USER_ID = "44d2849d-867f-4c21-b386-d017b85896c0";
+    const user = { id: DEV_USER_ID };
+
+    /*
+    // Production authentication code (currently disabled):
+    const authHeader = context.request.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "unauthenticated",
+            message: "Missing or invalid authentication token",
+          },
+        } satisfies ApiErrorDto<"unauthenticated">),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "unauthenticated",
+            message: "Invalid or expired authentication token",
+          },
+        } satisfies ApiErrorDto<"unauthenticated">),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+    */
+
+    // Step 3: Call service to list goals
+    const result = await listGoals(supabase, user.id, query);
+
+    // Step 4: Return success response
+    return new Response(
+      JSON.stringify({
+        data: result,
+      } satisfies GetGoalsResponseDto),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("GET /api/goals error:", error);
+
+    // Handle specific service errors
+    if (error instanceof Error) {
+      if (error.message === "database_error") {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: "internal_error",
+              message: "Database error occurred",
+            },
+          } satisfies ApiErrorDto<"internal_error">),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
+    // Generic error
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "internal_error",
+          message: "An unexpected error occurred",
+        },
+      } satisfies ApiErrorDto<"internal_error">),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+}
 
 /**
  * POST /api/goals - Create a new goal
@@ -68,7 +258,7 @@ export async function POST(context: APIContext) {
 
     // TODO: Remove hardcoded user ID before production deployment
     // For development, use a default user ID (create this user in Supabase first)
-    const DEV_USER_ID = "";
+    const DEV_USER_ID = "44d2849d-867f-4c21-b386-d017b85896c0";
     const user = { id: DEV_USER_ID };
 
     /* 
@@ -186,6 +376,7 @@ export async function POST(context: APIContext) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Unexpected error in POST /api/goals:", error);
     return new Response(
       JSON.stringify({
