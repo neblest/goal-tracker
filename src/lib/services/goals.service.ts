@@ -167,7 +167,8 @@ export async function listGoals(
       currentValue: 0,
       entriesCount: 0,
     };
-    existing.currentValue += entry.value;
+    // Convert decimal to number explicitly
+    existing.currentValue += Number(entry.value);
     existing.entriesCount += 1;
     progressByGoalId.set(entry.goal_id, existing);
   }
