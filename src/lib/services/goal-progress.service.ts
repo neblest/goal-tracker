@@ -347,11 +347,7 @@ export async function updateProgressEntry(
  * @param progressId - UUID of the progress entry to delete
  * @throws Error with specific codes: "progress_not_found", "goal_not_active", "database_error"
  */
-export async function deleteProgressEntry(
-  supabase: SupabaseClient,
-  userId: string,
-  progressId: string
-): Promise<void> {
+export async function deleteProgressEntry(supabase: SupabaseClient, userId: string, progressId: string): Promise<void> {
   // =========================================================================
   // 1. Fetch progress entry and associated goal to verify ownership and status
   // =========================================================================
