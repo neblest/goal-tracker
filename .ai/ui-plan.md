@@ -2,17 +2,17 @@
 
 ## 1. Przegląd struktury UI
 
-GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista celów**. Większość interakcji (utworzenie celu, podgląd szczegółów, edycje, dodanie progresu, porzucenie celu, AI summary, historia iteracji) odbywa się w **modalach nakładanych na listę** (routing modalny, deep-link + back/forward + refresh).
+GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista celów**. Większość interakcji (utworzenie celu, podgląd szczegółów, edycje, dodanie progresu, porzucenie celu, AI summary, historia iteracji) odbywa się na **osobnych stronach** (routing do nowych tras, deep-link + back/forward + refresh).
 
 **Założenia kluczowe:**
 - **Public**: onboarding (tylko niezalogowani), logowanie i rejestracja.
 - **App**: start po zalogowaniu → `/app/goals`.
-- **Modale jako overlay routes**:
-  - szczegóły celu: `/app/goals/:id` (modal pełnostronicowy do wysokości headera),
-  - dodanie celu: rekomendowane `/app/goals/new` (modal).
+- **Osobne strony dla szczegółów**:
+  - szczegóły celu: `/app/goals/:id` (osobna strona z wewnętrznym scroll),
+  - dodanie celu: `/app/goals/new` (osobna strona).
 - **Synchronizacja statusów** uruchamiana w tle po wejściu na listę celów (bez komunikatu).
-- **Polityka czasu**: UI “operuje na dniach”, dni pozostałe liczone wg lokalnego czasu użytkownika; deadline traktowany jako koniec dnia (23:59) na potrzeby prezentacji i spójności z logiką statusów.
-- **Dostępność (A11y)**: modal jako `role="dialog"` z focus trap, zamykanie `Esc`, przycisk zamknięcia z `aria-label`, wewnętrzny scroll; elementy klikalne z focus ring; alternatywne opisy dla wizualizacji progresu.
+- **Polityka czasu**: UI "operuje na dniach", dni pozostałe liczone wg lokalnego czasu użytkownika; deadline traktowany jako koniec dnia (23:59) na potrzeby prezentacji i spójności z logiką statusów.
+- **Dostępność (A11y)**: strony z focus management, zamykanie `Esc` dla modali, przyciski z `aria-label`, wewnętrzny scroll; elementy klikalne z focus ring; alternatywne opisy dla wizualizacji progresu.
 - **Bezpieczeństwo / auth**: 401 → redirect do `/login` (lub public root); dane użytkownika wyłącznie po stronie sesji (bez przyjmowania `user_id` z UI).
 
 ---
@@ -105,21 +105,20 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
   - pola: nazwa (unikalna w sensie UX; technicznie może wymagać walidacji po stronie API), target_value, deadline (data),
   - walidacje: wszystkie wymagane, target_value > 0, deadline w przyszłości.
 - **Kluczowe komponenty widoku**:
-  - modal z nagłówkiem i przyciskiem zamknięcia,
+  - strona z nagłówkiem i przyciskiem powrotu,
   - formularz tworzenia,
   - przycisk „Utwórz” + stany loading/błąd.
 - **UX, dostępność i względy bezpieczeństwa**:
-  - `role="dialog"`, focus trap, `Esc` zamyka,
   - czytelne błędy w `aria-live`,
-  - po sukcesie: zamknąć modal i odświeżyć listę (lub wstawić optymistycznie nową kartę).
+  - po sukcesie: redirect do listy i odświeżyć listę (lub wstawić optymistycznie nową kartę).
 
 **Mapowanie na API:**
 - POST `/api/goals`.
 
 ---
 
-### 2.6 Modal: Szczegóły celu
-- **Ścieżka widoku (routing modalny)**: `/app/goals/:id`
+### 2.6 Strona: Szczegóły celu
+- **Ścieżka widoku**: `/app/goals/:id`
 - **Główny cel**: umożliwić pełną pracę z celem: podgląd metryk, dodawanie/edycję progresu (tylko active), notatki refleksyjne, AI summary po zakończeniu, porzucenie, historia iteracji, retry/continue.
 - **Kluczowe informacje do wyświetlenia**:
   - definicja celu: nazwa, target_value, deadline, status,
@@ -128,12 +127,14 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
   - reflection_notes,
   - ai_summary (gdy istnieje),
   - historia iteracji (łańcuch).
-- **Kluczowe komponenty widoku** (sekcje w modalu):
-  1) **Nagłówek modala**: nazwa celu + status, „Zamknij” (X).
+- **Kluczowe komponenty widoku** (sekcje na stronie):
+  1) **Nagłówek strony**: nazwa celu + status, „Wróć” (strzałka).
   2) **Podsumowanie/metyki**:
      - kołowy progres + tekst alternatywny,
      - „X/Y” i percent,
-     - „Pozostało X dni” (gdy active).
+     - „Pozostało X dni” (gdy active),
+     - przycisk „Edytuj” (tylko gdy nie zablokowane),
+     - przycisk „Porzuć” (tylko gdy active).
   3) **Edycja pól celu** (tylko gdy nie zablokowane):
      - nazwa / target / deadline edytowalne do momentu pierwszego progresu,
      - po pierwszym progresie: pola stają się readonly (bez komunikatu zgodnie z decyzją).
@@ -146,23 +147,19 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
      - duże pole tekstowe, zawsze edytowalne,
      - zapis automatyczny lub przyciskiem (do decyzji implementacyjnej; architektonicznie dopuszczone obie).
   6) **AI Summary**:
-     - jeśli goal `completed_*` i brak `ai_summary` i `entries_count >= 3`: lazy generate przy wejściu do modala,
-     - retry do 3 w ramach sesji karty (tab),
+     - jeśli goal `completed_*` i brak `ai_summary` i `entries_count >= 3`: lazy generate przy wejściu na stronę,
+     - retry do 3 w ramach sesji strony,
      - po 3 porażkach: UI przełącza się na ręczne wprowadzenie i zapis.
      - jeśli `entries_count < 3`: komunikat „Za mało danych (min. 3 wpisy)”.
      - zawsze możliwość edycji treści summary (gdy istnieje).
   7) **Historia iteracji**:
      - lista poprzednich iteracji z datą, statusem, wynikiem,
-     - kliknięcie iteracji otwiera jej szczegóły (ten sam modal route dla innego id).
-  8) **Akcje celu** (kontekstowe):
-     - dla active: „Porzuć cel” (dialog z powodami),
-     - dla completed_failure/abandoned: „Spróbuj ponownie” (prefill create flow),
-     - dla completed_success: „Kontynuuj” (prefill create flow na bazie sugestii lub manualnie).
+     - kliknięcie iteracji przechodzi do jej szczegóły (ta sama strona route dla innego id).
 - **UX, dostępność i względy bezpieczeństwa**:
-  - modal pełnostronicowy do headera, wewnętrzny scroll,
+  - strona z wewnętrznym scroll,
   - sekcje z czytelnymi nagłówkami, anchor-y opcjonalnie dla długich treści,
   - obsługa błędów:
-    - 404: „Nie znaleziono celu” (w modalu) + CTA „Wróć do listy”,
+    - 404: „Nie znaleziono celu” (na stronie) + CTA „Wróć do listy”,
     - 409: komunikat „Cel nieaktywny / pola zablokowane” + CTA do historii lub retry/continue (zależnie od statusu),
     - 401: redirect do `/login`,
   - ograniczenia edycji progresu: UI ukrywa/disable akcje edycji gdy cel nieaktywny.
@@ -209,21 +206,21 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
 ### 3.2 Codzienne użycie: dodanie progresu
 1. Użytkownik otwiera `/app/goals`.
 2. W tle uruchamia się sync statusów (bez komunikatu).
-3. Użytkownik klika kartę celu → otwiera się `/app/goals/:id` (modal).
+3. Użytkownik klika kartę celu → przechodzi do `/app/goals/:id` (strona).
 4. W sekcji progresu wpisuje wartość (+ opcjonalna notatka) i klika „Dodaj”.
 5. Pojawia się dialog potwierdzenia (F‑17) → „Tak, zapisz”.
 6. Po sukcesie: lista wpisów aktualizuje się, metryki/progres się przeliczają (local/optimistic).
 7. Jeśli suma osiągnie target: UI pokazuje status „Zakończony sukcesem” i blokuje dodawanie/edycję progresu.
 
 ### 3.3 Zakończenie celu i AI summary (lazy)
-1. Użytkownik otwiera modal zakończonego celu.
+1. Użytkownik otwiera stronę zakończonego celu.
 2. Jeśli spełnione warunki (completed_* + brak ai_summary + entries_count ≥ 3) → UI uruchamia generowanie i pokazuje stan „Generuję podsumowanie…”.
 3. Sukces: wyświetla edytowalne pole podsumowania + (opcjonalnie) sugestię kolejnego celu.
 4. Błąd 429/502: pokazuje komunikat + „Spróbuj ponownie” (do 3 razy).
 5. Po 3 błędach: UI przełącza się na ręczny input + zapis przez PATCH.
 
 ### 3.4 Porzucenie celu
-1. W modalu aktywnego celu użytkownik klika „Porzuć cel”.
+1. W stronie aktywnego celu użytkownik klika „Porzuć cel” (w metrykach).
 2. Otwiera się dialog z listą powodów + „Inne…”.
 3. Po potwierdzeniu: status zmienia się na „Porzucony”, progres i edycje zostają zablokowane.
 
@@ -249,14 +246,14 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
 
 ### 4.2 Nawigacja w aplikacji (po zalogowaniu)
 - Główna trasa: `/app/goals` (lista).
-- Routing modalny (overlay na liście):
+- Routing do osobnych stron:
   - `/app/goals/new` → modal utworzenia celu
-  - `/app/goals/:id` → modal szczegółów celu
+  - `/app/goals/:id` → strona szczegółów celu
 - **Back/forward**:
-  - `Back` zamyka modal do `/app/goals`,
-  - `Forward` przywraca modal,
-  - odświeżenie strony na `/app/goals/:id` utrzymuje stan modala (po ponownym fetchu danych).
-- **Wylogowanie** dostępne w headerze na `/app/goals` (i dziedziczone wizualnie w modalach jako część tła/stałego headera).
+  - `Back` wraca do `/app/goals`,
+  - `Forward` przywraca stronę,
+  - odświeżenie strony na `/app/goals/:id` utrzymuje stan strony (po ponownym fetchu danych).
+- **Wylogowanie** dostępne w headerze na `/app/goals` (i dziedziczone wizualnie na stronach jako część stałego headera).
 
 ---
 
@@ -283,7 +280,7 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
    - `role="dialog"`, focus trap, `Esc`, przycisk zamknięcia `aria-label="Zamknij"`.
 
 6. **GoalDetailsSections**
-   - metryki, edycja celu (warunkowo), progres, notatki refleksyjne, AI summary, historia.
+   - metryki (z przyciskami Edytuj i Porzuć warunkowo), edycja celu (warunkowo), progres, notatki refleksyjne, AI summary, historia.
 
 7. **ProgressEntryList + LoadMore**
    - lista wpisów progresu z paginacją „Load more”.
@@ -325,12 +322,12 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
 - **US-009 Notatki refleksyjne** → GoalDetails: reflection_notes (zapis)
 - **US-010 Auto sukces** → GoalDetails: status update + blokada progresu/edycji
 - **US-011 Auto porażka** → silent sync na wejściu do listy + odzwierciedlenie w UI
-- **US-012 Porzucenie** → Abandon dialog w GoalDetails
-- **US-013 AI summary generowanie** → AISummaryPanel (lazy przy wejściu w modal)
+- **US-012 Porzucenie** → Abandon dialog w GoalDetails (w metrykach)
+- **US-013 AI summary generowanie** → AISummaryPanel (lazy przy wejściu na stronę)
 - **US-014 Edycja summary** → AISummaryPanel (editable + zapis)
-- **US-015 Retry AI + fallback** → AISummaryPanel (3 próby per tab, potem manual)
-- **US-016 Ponowienie celu** → CTA „Spróbuj ponownie” w GoalDetails + prefill create modal
-- **US-017 Kontynuacja po sukcesie** → CTA „Kontynuuj” w GoalDetails + prefill create modal
+- **US-015 Retry AI + fallback** → AISummaryPanel (3 próby per stronę, potem manual)
+- **US-016 Ponowienie celu** → CTA „Spróbuj ponownie” w GoalDetails + prefill create strona
+- **US-017 Kontynuacja po sukcesie** → CTA „Kontynuuj” w GoalDetails + prefill create strona
 - **US-018 Historia iteracji** → sekcja Historia w GoalDetails + nawigacja do iteracji
 - **US-019 Edycja wpisu progresu** → akcja „Edytuj” przy wpisie (tylko active) + confirm dialog
 
@@ -375,5 +372,5 @@ GoalTracker w MVP opiera się na jednym głównym ekranie aplikacji: **lista cel
   - minimalna mitigacja bez łamania założenia: zachować spójne readonly + brak CTA „Edytuj” w tym obszarze; opcjonalnie subtelny hint wizualny (bez tekstowego wyjaśnienia).
 - **AI summary i błędy providerów**:
   - jasne stany, retry limit, szybki fallback manualny.
-- **Routing modalny**:
-  - zapewnić intuicyjne zamykanie (X + Esc + Back) i stabilność po refresh.
+- **Routing do osobnych stron**:
+  - zapewnić intuicyjne nawigację (Back/Forward) i stabilność po refresh.

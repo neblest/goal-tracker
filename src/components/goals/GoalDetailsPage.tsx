@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Loader2, TimerReset } from "lucide-react";
 
-import GoalActionsSection from "@/components/goals/GoalActionsSection";
 import GoalAiSummarySection from "@/components/goals/GoalAiSummarySection";
 import GoalDetailsHeader from "@/components/goals/GoalDetailsHeader";
-import GoalEditableFieldsSection from "@/components/goals/GoalEditableFieldsSection";
 import GoalHistorySection from "@/components/goals/GoalHistorySection";
 import GoalMetricsSection from "@/components/goals/GoalMetricsSection";
 import GoalProgressSection from "@/components/goals/GoalProgressSection";
 import GoalReflectionNotesSection from "@/components/goals/GoalReflectionNotesSection";
+import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
 import type { GetGoalResponseDto, GoalDetailsDto, GoalStatus, UpdateGoalCommand, UpdateGoalResponseDto } from "@/types";
@@ -29,6 +28,10 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
 
   const handleBack = useCallback(() => {
     window.history.back();
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    window.location.href = "/login";
   }, []);
 
   const fetchGoal = useCallback(
@@ -62,21 +65,6 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     void fetchGoal();
   }, [fetchGoal]);
 
-  const metrics = useMemo(() => {
-    if (state.status !== "success") {
-      return null;
-    }
-
-    const { goal } = state;
-    return {
-      currentValueText: goal.computed.current_value,
-      targetValueText: goal.target_value,
-      progressPercent: goal.computed.progress_percent,
-      daysRemaining: goal.computed.days_remaining,
-      showDaysRemaining: goal.status === "active",
-    };
-  }, [state]);
-
   const handleUpdateGoal = useCallback(
     async (command: UpdateGoalCommand) => {
       if (state.status !== "success") return;
@@ -103,40 +91,48 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     [fetchGoal, goalId, state]
   );
 
+  const handleAbandon = useCallback(
+    async (reason: string) => {
+      if (state.status !== "success") return;
+      await apiFetchJson(`/api/goals/${goalId}/abandon`, {
+        method: "PATCH",
+        body: JSON.stringify({ reason }),
+      });
+      await fetchGoal({ keepData: true });
+    },
+    [fetchGoal, goalId, state]
+  );
+
+  const metrics = useMemo(() => {
+    if (state.status !== "success") {
+      return null;
+    }
+
+    const { goal } = state;
+    return {
+      goalName: goal.name,
+      deadline: goal.deadline,
+      targetValue: goal.target_value,
+      currentValueText: goal.computed.current_value,
+      targetValueText: goal.target_value,
+      progressPercent: goal.computed.progress_percent,
+      daysRemaining: goal.computed.days_remaining,
+      showDaysRemaining: goal.status === "active",
+      isLocked: goal.computed.is_locked,
+      onSubmit: handleUpdateGoal,
+      onAbandon: handleAbandon,
+    };
+  }, [state, handleUpdateGoal]);
+
   const refreshGoal = useCallback(async () => {
     if (state.status !== "success") return;
     await fetchGoal({ keepData: true });
   }, [fetchGoal, state]);
 
-  const handleStatusChanged = useCallback(
-    (status: GoalStatus) => {
-      if (state.status !== "success") return;
-      setState({ status: "success", goal: { ...state.goal, status } });
-      void fetchGoal({ keepData: true });
-    },
-    [fetchGoal, state]
-  );
-
-  const handleGoalCreated = useCallback((newGoalId: string) => {
-    window.location.href = `/app/goals/${newGoalId}`;
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
       <header className="sticky top-0 z-20 bg-[#FAF8F5]/95 backdrop-blur-xl border-b border-[#E5DDD5]/60">
-        {state.status === "success" ? (
-          <GoalDetailsHeader name={state.goal.name} status={state.goal.status} onClose={handleBack} />
-        ) : (
-          <div className="flex items-center justify-between gap-4 px-8 py-4">
-            <div>
-              <p className="text-lg font-semibold">Szczegóły celu</p>
-              <p className="text-sm text-muted-foreground">Ładowanie danych...</p>
-            </div>
-            <Button variant="ghost" size="icon" aria-label="Zamknij" onClick={handleBack}>
-              ×
-            </Button>
-          </div>
-        )}
+        <AppHeader title="Szczegóły celu" userDisplayName="Użytkowniku" onLogout={handleLogout} />
       </header>
 
       <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-8 pb-16 pt-6">
@@ -162,13 +158,6 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
         {state.status === "success" && metrics ? (
           <div className="flex flex-col gap-5">
             <GoalMetricsSection {...metrics} />
-            <GoalEditableFieldsSection
-              name={state.goal.name}
-              targetValue={state.goal.target_value}
-              deadline={state.goal.deadline}
-              isLocked={state.goal.computed.is_locked}
-              onSubmit={handleUpdateGoal}
-            />
             <GoalProgressSection goalId={goalId} goalStatus={state.goal.status} onProgressChanged={refreshGoal} />
             <GoalHistorySection goalId={goalId} activeGoalId={state.goal.id} />
             <GoalReflectionNotesSection
@@ -180,15 +169,6 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
               aiSummary={state.goal.ai_summary}
               entriesCount={state.goal.computed.entries_count}
               onSave={(value) => handleUpdateGoal({ ai_summary: value })}
-            />
-            <GoalActionsSection
-              goalId={goalId}
-              status={state.goal.status}
-              defaultName={state.goal.name}
-              defaultTargetValue={state.goal.target_value}
-              defaultDeadline={state.goal.deadline}
-              onStatusChanged={handleStatusChanged}
-              onGoalCreated={handleGoalCreated}
             />
           </div>
         ) : null}

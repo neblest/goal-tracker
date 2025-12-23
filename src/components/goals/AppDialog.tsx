@@ -21,10 +21,7 @@ export function AppDialog({ open, onClose, children, variant = "default", conten
     [onClose]
   );
 
-  const variantClassName =
-    variant === "fullscreen"
-      ? "h-[90vh] w-[min(1100px,calc(100vw-24px))] max-w-6xl overflow-hidden"
-      : "w-full max-w-2xl";
+  const variantClassName = variant === "fullscreen" ? "h-screen w-full overflow-hidden" : "w-full max-w-2xl";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

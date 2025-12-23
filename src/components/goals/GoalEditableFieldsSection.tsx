@@ -12,6 +12,8 @@ interface GoalEditableFieldsSectionProps {
   targetValue: string;
   deadline: string;
   isLocked: boolean;
+  isEditing: boolean;
+  onToggleEditing: () => void;
   onSubmit: (command: UpdateGoalCommand) => Promise<void>;
 }
 
@@ -27,6 +29,8 @@ export function GoalEditableFieldsSection({
   targetValue,
   deadline,
   isLocked,
+  isEditing,
+  onToggleEditing,
   onSubmit,
 }: GoalEditableFieldsSectionProps) {
   const baseId = useId();
@@ -126,9 +130,15 @@ export function GoalEditableFieldsSection({
             Nazwa, wartość docelowa i deadline są edytowalne do pierwszego wpisu progresu.
           </p>
         </div>
-        {isLocked ? (
-          <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs font-medium text-[#4A3F35]">Zablokowane</span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {isLocked ? (
+            <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs font-medium text-[#4A3F35]">Zablokowane</span>
+          ) : !isEditing ? (
+            <Button onClick={onToggleEditing} variant="outline" size="sm">
+              Edytuj
+            </Button>
+          ) : null}
+        </div>
       </header>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
@@ -143,7 +153,7 @@ export function GoalEditableFieldsSection({
             id={`${baseId}-name`}
             value={formState.name}
             onChange={(event) => handleChange("name", event.target.value)}
-            disabled={isLocked}
+            disabled={isLocked || !isEditing}
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? `${baseId}-name-error` : undefined}
             maxLength={500}
@@ -164,7 +174,7 @@ export function GoalEditableFieldsSection({
               id={`${baseId}-target`}
               value={formState.target_value}
               onChange={(event) => handleChange("target_value", event.target.value)}
-              disabled={isLocked}
+              disabled={isLocked || !isEditing}
               inputMode="decimal"
               aria-invalid={Boolean(errors.target_value)}
               aria-describedby={errors.target_value ? `${baseId}-target-error` : undefined}
@@ -185,7 +195,7 @@ export function GoalEditableFieldsSection({
               type="date"
               value={formState.deadline}
               onChange={(event) => handleChange("deadline", event.target.value)}
-              disabled={isLocked}
+              disabled={isLocked || !isEditing}
               aria-invalid={Boolean(errors.deadline)}
               aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
             />
@@ -220,7 +230,7 @@ export function GoalEditableFieldsSection({
         <div className="flex justify-end gap-2">
           <Button
             type="submit"
-            disabled={isLocked || submitting || !hasChanges}
+            disabled={isLocked || !isEditing || submitting || !hasChanges}
             className="bg-[#D4A574] hover:bg-[#C9965E] text-white"
           >
             {submitting ? "Zapisywanie..." : "Zapisz zmiany"}

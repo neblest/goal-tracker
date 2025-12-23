@@ -1,14 +1,12 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
-import GoalsListPage from "../../../components/goals/GoalsListPage";
-import GoalDetailsModalPage from "../../../components/goals/GoalDetailsModalPage";
+import GoalDetailsPage from "../../../components/goals/GoalDetailsPage";
 
 const { goalId } = Astro.params;
 ---
 
 <Layout title="Szczegóły celu">
-  <main aria-label="Lista celów ze szczegółami celu">
-    <GoalsListPage client:load />
-    <GoalDetailsModalPage client:load goalId={goalId} />
+  <main aria-label="Szczegóły celu">
+    <GoalDetailsPage client:load goalId={goalId} />
   </main>
 </Layout>
