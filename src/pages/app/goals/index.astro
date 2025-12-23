@@ -1,0 +1,10 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import GoalsListPage from "../../../components/goals/GoalsListPage";
+---
+
+<Layout title="Lista celów">
+  <main aria-label="Lista celów">
+    <GoalsListPage client:load />
+  </main>
+</Layout>
