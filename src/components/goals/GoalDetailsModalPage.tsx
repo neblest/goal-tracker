@@ -161,7 +161,13 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
 
         {state.status === "success" && metrics ? (
           <div className="flex flex-col gap-5">
-            <GoalMetricsSection {...metrics} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <GoalMetricsSection {...metrics} />
+              <GoalReflectionNotesSection
+                value={state.goal.reflection_notes}
+                onSave={(value) => handleUpdateGoal({ reflection_notes: value })}
+              />
+            </div>
             <GoalEditableFieldsSection
               name={state.goal.name}
               targetValue={state.goal.target_value}
@@ -169,12 +175,10 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
               isLocked={state.goal.computed.is_locked}
               onSubmit={handleUpdateGoal}
             />
-            <GoalProgressSection goalId={goalId} goalStatus={state.goal.status} onProgressChanged={refreshGoal} />
-            <GoalHistorySection goalId={goalId} activeGoalId={state.goal.id} />
-            <GoalReflectionNotesSection
-              value={state.goal.reflection_notes}
-              onSave={(value) => handleUpdateGoal({ reflection_notes: value })}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <GoalProgressSection goalId={goalId} goalStatus={state.goal.status} onProgressChanged={refreshGoal} />
+              <GoalHistorySection goalId={goalId} activeGoalId={state.goal.id} />
+            </div>
             <GoalAiSummarySection
               status={state.goal.status}
               aiSummary={state.goal.ai_summary}

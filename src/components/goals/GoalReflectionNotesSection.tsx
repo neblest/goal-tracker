@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface GoalReflectionNotesSectionProps {
@@ -10,24 +9,19 @@ interface GoalReflectionNotesSectionProps {
 
 export function GoalReflectionNotesSection({ value, onSave }: GoalReflectionNotesSectionProps) {
   const [draft, setDraft] = useState(value ?? "");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSave = useCallback(async () => {
-    setSaving(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      await onSave(draft.trim() === "" ? null : draft.trim());
-      setSuccess("Zapisano notatkę.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Nie udało się zapisać notatki.";
-      setError(message);
-    } finally {
-      setSaving(false);
+  const handleBlur = useCallback(async () => {
+    const trimmedDraft = draft.trim();
+    const originalValue = value ?? "";
+    if (trimmedDraft !== originalValue) {
+      try {
+        await onSave(trimmedDraft === "" ? null : trimmedDraft);
+      } catch (error) {
+        // Optionally handle error, but since no UI feedback, maybe log or ignore
+        console.error("Failed to save reflection notes:", error);
+      }
     }
-  }, [draft, onSave]);
+  }, [draft, value, onSave]);
 
   return (
     <section
@@ -44,24 +38,11 @@ export function GoalReflectionNotesSection({ value, onSave }: GoalReflectionNote
         <Textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          rows={4}
+          onBlur={handleBlur}
+          rows={6}
+          className="resize-none"
           aria-label="Notatka refleksyjna"
         />
-        {error ? (
-          <p className="text-sm text-[#C17A6F]" aria-live="polite">
-            {error}
-          </p>
-        ) : null}
-        {success ? (
-          <p className="text-sm text-[#9CAA7F]" aria-live="polite">
-            {success}
-          </p>
-        ) : null}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving} className="bg-[#D4A574] hover:bg-[#C9965E] text-white">
-            {saving ? "Zapisywanie..." : "Zapisz"}
-          </Button>
-        </div>
       </div>
     </section>
   );
