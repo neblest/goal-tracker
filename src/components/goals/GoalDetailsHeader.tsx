@@ -33,15 +33,21 @@ export function GoalDetailsHeader({ name, status, onClose }: GoalDetailsHeaderPr
   }, [status]);
 
   return (
-    <header className="flex items-start justify-between gap-4 border-b border-border/70 px-6 pb-4 pt-5 sm:px-7">
+    <header className="flex items-start justify-between gap-4 border-b border-[#E5DDD5] px-6 pb-4 pt-5 sm:px-7">
       <div className="flex flex-1 flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold leading-tight">{name}</h2>
+          <h2 className="text-xl font-semibold leading-tight text-[#4A3F35]">{name}</h2>
           <Badge variant={badgeVariant}>{statusLabels[status]}</Badge>
         </div>
-        <p className="text-sm text-muted-foreground">Szczegóły celu i postępy.</p>
+        <p className="text-sm text-[#8B7E74]">Szczegóły celu i postępy.</p>
       </div>
-      <Button variant="ghost" size="icon" aria-label="Zamknij" onClick={onClose}>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Zamknij"
+        onClick={onClose}
+        className="hover:bg-[#D4A574]/10 text-[#4A3F35]"
+      >
         <X className="size-5" aria-hidden="true" />
       </Button>
     </header>

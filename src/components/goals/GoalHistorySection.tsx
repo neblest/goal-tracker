@@ -42,24 +42,22 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
 
   return (
     <section
-      className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm"
+      className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
       aria-label="Historia iteracji celu"
     >
       <header className="flex items-center justify-between pb-4">
         <div>
-          <h3 className="text-base font-semibold">Historia iteracji</h3>
-          <p className="text-sm text-muted-foreground">Łańcuch powiązanych celów tworzony przy retry/continue.</p>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Historia iteracji</h3>
+          <p className="text-sm text-[#8B7E74]">Łańcuch powiązanych celów tworzony przy retry/continue.</p>
         </div>
         <Button size="sm" variant="outline" onClick={fetchHistory} disabled={loading}>
           Odśwież
         </Button>
       </header>
 
-      {loading ? <p className="text-sm text-muted-foreground">Ładowanie historii...</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {!loading && !error && items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Brak historii.</p>
-      ) : null}
+      {loading ? <p className="text-sm text-[#8B7E74]">Ładowanie historii...</p> : null}
+      {error ? <p className="text-sm text-[#C17A6F]">{error}</p> : null}
+      {!loading && !error && items.length === 0 ? <p className="text-sm text-[#8B7E74]">Brak historii.</p> : null}
 
       <div className="grid gap-3">
         {items.map((item) => {
@@ -72,15 +70,15 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
                 if (isActive) return;
                 window.location.href = `/app/goals/${item.id}`;
               }}
-              className="flex w-full flex-col gap-1 rounded-lg border border-border/70 bg-background/50 px-4 py-3 text-left transition hover:border-primary"
+              className="flex w-full flex-col gap-1 rounded-lg border border-[#E5DDD5] bg-[#FAF8F5] px-4 py-3 text-left transition hover:border-[#D4A574] hover:bg-white"
               aria-current={isActive ? "true" : undefined}
             >
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground">{item.name}</span>
+                <span className="font-semibold text-[#4A3F35]">{item.name}</span>
                 <Badge variant={isActive ? "default" : "outline"}>{statusLabels[item.status]}</Badge>
               </div>
-              <div className="text-xs text-muted-foreground">Deadline: {item.deadline}</div>
-              <div className="text-xs text-muted-foreground">Aktualna wartość: {item.computed.current_value}</div>
+              <div className="text-xs text-[#8B7E74]">Deadline: {item.deadline}</div>
+              <div className="text-xs text-[#8B7E74]">Aktualna wartość: {item.computed.current_value}</div>
             </button>
           );
         })}

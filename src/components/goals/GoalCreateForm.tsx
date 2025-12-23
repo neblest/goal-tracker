@@ -113,10 +113,10 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
     <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor={`${baseId}-name`} className="text-sm font-medium">
+          <Label htmlFor={`${baseId}-name`} className="text-sm font-medium text-[#4A3F35]">
             Nazwa
           </Label>
-          <span className="text-[11px] text-muted-foreground">{values.name.trim().length}/500</span>
+          <span className="text-[11px] text-[#8B7E74]">{values.name.trim().length}/500</span>
         </div>
         <Input
           id={`${baseId}-name`}
@@ -130,7 +130,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
           aria-describedby={errors.name ? `${baseId}-name-error` : undefined}
         />
         {errors.name ? (
-          <p id={`${baseId}-name-error`} className="text-sm text-destructive">
+          <p id={`${baseId}-name-error`} className="text-sm text-[#C17A6F]">
             {errors.name}
           </p>
         ) : null}
@@ -138,7 +138,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor={`${baseId}-target`} className="text-sm font-medium">
+          <Label htmlFor={`${baseId}-target`} className="text-sm font-medium text-[#4A3F35]">
             Wartość docelowa
           </Label>
           <Input
@@ -153,14 +153,14 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
             aria-describedby={errors.target_value ? `${baseId}-target-error` : undefined}
           />
           {errors.target_value ? (
-            <p id={`${baseId}-target-error`} className="text-sm text-destructive">
+            <p id={`${baseId}-target-error`} className="text-sm text-[#C17A6F]">
               {errors.target_value}
             </p>
           ) : null}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`${baseId}-deadline`} className="text-sm font-medium">
+          <Label htmlFor={`${baseId}-deadline`} className="text-sm font-medium text-[#4A3F35]">
             Deadline (RRRR-MM-DD)
           </Label>
           <Input
@@ -174,7 +174,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
             aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
           />
           {errors.deadline ? (
-            <p id={`${baseId}-deadline-error`} className="text-sm text-destructive">
+            <p id={`${baseId}-deadline-error`} className="text-sm text-[#C17A6F]">
               {errors.deadline}
             </p>
           ) : null}
@@ -183,7 +183,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
 
       {formError ? (
         <div
-          className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="flex items-start gap-2 rounded-md border border-[#C17A6F]/40 bg-[#C17A6F]/10 px-3 py-2 text-sm text-[#C17A6F]"
           role="status"
           aria-live="polite"
         >

@@ -136,16 +136,16 @@ export function GoalActionsSection({
 
   if (status === "active") {
     return (
-      <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Akcje celu">
+      <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Akcje celu">
         <header className="flex items-center justify-between pb-3">
           <div>
-            <h3 className="text-base font-semibold">Akcje</h3>
-            <p className="text-sm text-muted-foreground">Porzuć cel, jeśli nie jest już aktualny.</p>
+            <h3 className="text-base font-semibold text-[#4A3F35]">Akcje</h3>
+            <p className="text-sm text-[#8B7E74]">Porzuć cel, jeśli nie jest już aktualny.</p>
           </div>
         </header>
-        {formError ? <p className="mb-2 text-sm text-destructive">{formError}</p> : null}
+        {formError ? <p className="mb-2 text-sm text-[#C17A6F]">{formError}</p> : null}
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="abandon-reason">
+          <label className="text-sm font-medium text-[#4A3F35]" htmlFor="abandon-reason">
             Powód porzucenia
           </label>
           <Textarea
@@ -157,7 +157,12 @@ export function GoalActionsSection({
           />
         </div>
         <div className="mt-3 flex justify-end">
-          <Button variant="destructive" onClick={handleAbandon} disabled={pending}>
+          <Button
+            variant="destructive"
+            onClick={handleAbandon}
+            disabled={pending}
+            className="bg-[#C17A6F] hover:bg-[#B0685D] text-white"
+          >
             {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : "Porzuć cel"}
           </Button>
         </div>
@@ -170,17 +175,17 @@ export function GoalActionsSection({
     const mode = status === "completed_success" ? "continue" : "retry";
 
     return (
-      <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Akcje celu">
+      <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Akcje celu">
         <header className="flex items-center justify-between pb-3">
           <div>
-            <h3 className="text-base font-semibold">Akcje</h3>
-            <p className="text-sm text-muted-foreground">Stwórz kolejną iterację celu.</p>
+            <h3 className="text-base font-semibold text-[#4A3F35]">Akcje</h3>
+            <p className="text-sm text-[#8B7E74]">Stwórz kolejną iterację celu.</p>
           </div>
         </header>
-        {formError ? <p className="mb-2 text-sm text-destructive">{formError}</p> : null}
+        {formError ? <p className="mb-2 text-sm text-[#C17A6F]">{formError}</p> : null}
         <div className="grid gap-3 md:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="restart-name">
+            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-name">
               Nazwa
             </label>
             <Input
@@ -190,7 +195,7 @@ export function GoalActionsSection({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="restart-target">
+            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-target">
               Wartość docelowa
             </label>
             <Input
@@ -201,7 +206,7 @@ export function GoalActionsSection({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="restart-deadline">
+            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-deadline">
               Deadline
             </label>
             <Input
@@ -213,7 +218,11 @@ export function GoalActionsSection({
           </div>
         </div>
         <div className="mt-3 flex justify-end">
-          <Button onClick={() => handleRestart(mode)} disabled={pending}>
+          <Button
+            onClick={() => handleRestart(mode)}
+            disabled={pending}
+            className="bg-[#D4A574] hover:bg-[#C9965E] text-white"
+          >
             {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : actionLabel}
           </Button>
         </div>

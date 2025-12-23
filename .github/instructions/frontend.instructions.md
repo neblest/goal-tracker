@@ -10,6 +10,41 @@ applyTo: '*.tsx,*.astro'
 
 ### Guidelines for Styling
 
+#### Color Palette
+
+The application uses a warm beige color system. Always apply these colors when creating or modifying components:
+
+**Background Colors:**
+- Main background: `bg-[#FAF8F5]` - warm beige background for pages
+- Card/Surface: `bg-white` - pure white for cards and surfaces
+- Muted background: `bg-[#D4A574]/10` - subtle warm accent backgrounds
+
+**Border Colors:**
+- Default border: `border-[#E5DDD5]` - soft beige borders
+- Hover border: `border-[#D4A574]` - warm golden accent on hover
+- Subtle border: `border-[#E5DDD5]/60` - lighter borders
+
+**Text Colors:**
+- Primary text: `text-[#4A3F35]` - warm brown for main content
+- Secondary text: `text-[#8B7E74]` - muted beige for secondary content
+- Placeholder text: `placeholder:text-[#A89F94]` - light beige for placeholders
+
+**Accent Colors:**
+- Primary accent: `bg-[#D4A574]` - warm golden beige for buttons/highlights
+- Accent hover: `bg-[#C9965E]` - darker golden on hover
+- Accent text: `text-[#D4A574]` - warm golden for icons/links
+
+**Status Colors:**
+- Success: `text-[#9CAA7F]` / `bg-[#9CAA7F]` - olive green
+- Error/Failure: `text-[#C17A6F]` / `bg-[#C17A6F]` - warm terracotta
+- Warning: `text-[#D4A574]` / `bg-[#D4A574]` - honey gold
+- Info: `text-[#A89F94]` - warm gray
+
+**Interactive Elements:**
+- Focus ring: `focus-visible:ring-[#D4A574]/30`
+- Hover background: `hover:bg-[#D4A574]/10`
+- Active state: Use darker shade `#C9965E`
+
 #### Tailwind
 
 - Use the @layer directive to organize styles into components, utilities, and base layers

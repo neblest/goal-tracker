@@ -31,13 +31,13 @@ export function GoalReflectionNotesSection({ value, onSave }: GoalReflectionNote
 
   return (
     <section
-      className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm"
+      className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
       aria-label="Notatka refleksyjna"
     >
       <header className="flex items-center justify-between pb-3">
         <div>
-          <h3 className="text-base font-semibold">Notatka refleksyjna</h3>
-          <p className="text-sm text-muted-foreground">Dowolna notatka podsumowująca przebieg celu.</p>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Notatka refleksyjna</h3>
+          <p className="text-sm text-[#8B7E74]">Dowolna notatka podsumowująca przebieg celu.</p>
         </div>
       </header>
       <div className="space-y-3">
@@ -48,17 +48,17 @@ export function GoalReflectionNotesSection({ value, onSave }: GoalReflectionNote
           aria-label="Notatka refleksyjna"
         />
         {error ? (
-          <p className="text-sm text-destructive" aria-live="polite">
+          <p className="text-sm text-[#C17A6F]" aria-live="polite">
             {error}
           </p>
         ) : null}
         {success ? (
-          <p className="text-sm text-emerald-700" aria-live="polite">
+          <p className="text-sm text-[#9CAA7F]" aria-live="polite">
             {success}
           </p>
         ) : null}
         <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="bg-[#D4A574] hover:bg-[#C9965E] text-white">
             {saving ? "Zapisywanie..." : "Zapisz"}
           </Button>
         </div>

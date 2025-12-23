@@ -115,24 +115,29 @@ export function GoalEditableFieldsSection({
   );
 
   return (
-    <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Edycja danych celu">
+    <section
+      className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
+      aria-label="Edycja danych celu"
+    >
       <header className="flex items-center justify-between gap-3 pb-4">
         <div>
-          <h3 className="text-base font-semibold">Edytuj cel</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-base font-semibold text-[#4A3F35]">Edytuj cel</h3>
+          <p className="text-sm text-[#8B7E74]">
             Nazwa, wartość docelowa i deadline są edytowalne do pierwszego wpisu progresu.
           </p>
         </div>
         {isLocked ? (
-          <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">Zablokowane</span>
+          <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs font-medium text-[#4A3F35]">Zablokowane</span>
         ) : null}
       </header>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor={`${baseId}-name`}>Nazwa</Label>
-            <span className="text-[11px] text-muted-foreground">{formState.name.trim().length}/500</span>
+            <Label htmlFor={`${baseId}-name`} className="text-[#4A3F35]">
+              Nazwa
+            </Label>
+            <span className="text-[11px] text-[#8B7E74]">{formState.name.trim().length}/500</span>
           </div>
           <Input
             id={`${baseId}-name`}
@@ -144,7 +149,7 @@ export function GoalEditableFieldsSection({
             maxLength={500}
           />
           {errors.name ? (
-            <p id={`${baseId}-name-error`} className="text-sm text-destructive">
+            <p id={`${baseId}-name-error`} className="text-sm text-[#C17A6F]">
               {errors.name}
             </p>
           ) : null}
@@ -152,7 +157,9 @@ export function GoalEditableFieldsSection({
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor={`${baseId}-target`}>Wartość docelowa</Label>
+            <Label htmlFor={`${baseId}-target`} className="text-[#4A3F35]">
+              Wartość docelowa
+            </Label>
             <Input
               id={`${baseId}-target`}
               value={formState.target_value}
@@ -163,14 +170,16 @@ export function GoalEditableFieldsSection({
               aria-describedby={errors.target_value ? `${baseId}-target-error` : undefined}
             />
             {errors.target_value ? (
-              <p id={`${baseId}-target-error`} className="text-sm text-destructive">
+              <p id={`${baseId}-target-error`} className="text-sm text-[#C17A6F]">
                 {errors.target_value}
               </p>
             ) : null}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`${baseId}-deadline`}>Deadline</Label>
+            <Label htmlFor={`${baseId}-deadline`} className="text-[#4A3F35]">
+              Deadline
+            </Label>
             <Input
               id={`${baseId}-deadline`}
               type="date"
@@ -181,7 +190,7 @@ export function GoalEditableFieldsSection({
               aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
             />
             {errors.deadline ? (
-              <p id={`${baseId}-deadline-error`} className="text-sm text-destructive">
+              <p id={`${baseId}-deadline-error`} className="text-sm text-[#C17A6F]">
                 {errors.deadline}
               </p>
             ) : null}
@@ -190,7 +199,7 @@ export function GoalEditableFieldsSection({
 
         {formError ? (
           <div
-            className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            className="flex items-start gap-2 rounded-md border border-[#C17A6F]/40 bg-[#C17A6F]/10 px-3 py-2 text-sm text-[#C17A6F]"
             aria-live="polite"
             role="status"
           >
@@ -200,7 +209,7 @@ export function GoalEditableFieldsSection({
 
         {successMessage ? (
           <div
-            className="flex items-start gap-2 rounded-md border border-emerald-400/60 bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
+            className="flex items-start gap-2 rounded-md border border-[#9CAA7F]/60 bg-[#9CAA7F]/10 px-3 py-2 text-sm text-[#4A3F35]"
             aria-live="polite"
             role="status"
           >
@@ -209,7 +218,11 @@ export function GoalEditableFieldsSection({
         ) : null}
 
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLocked || submitting || !hasChanges}>
+          <Button
+            type="submit"
+            disabled={isLocked || submitting || !hasChanges}
+            className="bg-[#D4A574] hover:bg-[#C9965E] text-white"
+          >
             {submitting ? "Zapisywanie..." : "Zapisz zmiany"}
           </Button>
         </div>

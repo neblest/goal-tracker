@@ -51,11 +51,13 @@ export default function GoalCreateModalPage() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-full max-w-2xl p-0 sm:p-0">
+      <DialogContent className="w-full max-w-2xl p-0 sm:p-0 bg-white border-[#E5DDD5]">
         <div className="flex flex-col gap-4 p-6 sm:p-7">
           <DialogHeader className="space-y-2">
-            <DialogTitle>Utwórz nowy cel</DialogTitle>
-            <DialogDescription>Uzupełnij dane, aby rozpocząć śledzenie nowego celu.</DialogDescription>
+            <DialogTitle className="text-[#4A3F35]">Utwórz nowy cel</DialogTitle>
+            <DialogDescription className="text-[#8B7E74]">
+              Uzupełnij dane, aby rozpocząć śledzenie nowego celu.
+            </DialogDescription>
           </DialogHeader>
 
           <GoalCreateForm

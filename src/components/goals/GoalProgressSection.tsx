@@ -209,22 +209,20 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   const canSubmit = canEdit && !pendingId;
 
   return (
-    <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Progres celu">
+    <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Progres celu">
       <header className="flex items-center justify-between pb-4">
         <div>
-          <h3 className="text-base font-semibold">Postęp</h3>
-          <p className="text-sm text-muted-foreground">
-            Dodawaj i edytuj wpisy progresu. Dostępne tylko dla aktywnych celów.
-          </p>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Postęp</h3>
+          <p className="text-sm text-[#8B7E74]">Dodawaj i edytuj wpisy progresu. Dostępne tylko dla aktywnych celów.</p>
         </div>
         {!canEdit ? (
-          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Tylko podgląd</span>
+          <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs text-[#4A3F35]">Tylko podgląd</span>
         ) : null}
       </header>
 
       {state.error ? (
         <div
-          className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="mb-4 rounded-md border border-[#C17A6F]/40 bg-[#C17A6F]/10 px-3 py-2 text-sm text-[#C17A6F]"
           role="status"
           aria-live="polite"
         >
@@ -234,7 +232,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
 
       {canEdit ? (
         <form
-          className="mb-5 grid gap-3 rounded-lg border border-border/70 bg-background/50 p-4"
+          className="mb-5 grid gap-3 rounded-lg border border-[#E5DDD5] bg-[#FAF8F5]/50 p-4"
           onSubmit={(event) => {
             event.preventDefault();
             setConfirm({ type: "create" });
@@ -243,7 +241,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         >
           <div className="grid gap-3 md:grid-cols-[200px_1fr]">
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="progress-value">
+              <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-value">
                 Wartość
               </label>
               <Input
@@ -255,7 +253,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="progress-notes">
+              <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
                 Notatki (opcjonalnie)
               </label>
               <Textarea
@@ -266,9 +264,9 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               />
             </div>
           </div>
-          {createError ? <p className="text-sm text-destructive">{createError}</p> : null}
+          {createError ? <p className="text-sm text-[#C17A6F]">{createError}</p> : null}
           <div className="flex justify-end">
-            <Button type="submit" disabled={!canSubmit} className="gap-2">
+            <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
               {pendingId === "new" ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               ) : (
@@ -281,23 +279,25 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       ) : null}
 
       {state.loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        <div className="flex items-center gap-2 text-sm text-[#8B7E74]">
+          <Loader2 className="size-4 animate-spin text-[#D4A574]" aria-hidden="true" />
           Ładowanie wpisów...
         </div>
       ) : null}
 
       {!state.loading && state.items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Brak wpisów progresu.</p>
+        <p className="text-sm text-[#8B7E74]">Brak wpisów progresu.</p>
       ) : null}
 
       <div className="grid gap-3">
         {state.items.map((entry) => {
           const isEditing = editingId === entry.id;
           return (
-            <Card key={entry.id} className="border-border/70">
+            <Card key={entry.id} className="border-[#E5DDD5] bg-white">
               <CardHeader className="flex items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-semibold">{new Date(entry.created_at).toLocaleString()}</CardTitle>
+                <CardTitle className="text-sm font-semibold text-[#4A3F35]">
+                  {new Date(entry.created_at).toLocaleString()}
+                </CardTitle>
                 {canEdit ? (
                   <div className="flex gap-2">
                     <Button
@@ -306,6 +306,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                       aria-label="Edytuj"
                       onClick={() => startEdit(entry)}
                       disabled={Boolean(pendingId)}
+                      className="hover:bg-[#D4A574]/10 text-[#4A3F35]"
                     >
                       <Pencil className="size-4" aria-hidden="true" />
                     </Button>
@@ -315,6 +316,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                       aria-label="Usuń"
                       onClick={() => setConfirm({ type: "delete", entryId: entry.id })}
                       disabled={Boolean(pendingId)}
+                      className="hover:bg-[#C17A6F]/10 text-[#C17A6F]"
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
                     </Button>
@@ -338,10 +340,8 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                   </div>
                 ) : (
                   <div className="grid gap-2 md:grid-cols-[200px_1fr]">
-                    <div className="font-semibold">{entry.value}</div>
-                    <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {entry.notes || "Brak notatek"}
-                    </div>
+                    <div className="font-semibold text-[#4A3F35]">{entry.value}</div>
+                    <div className="text-sm text-[#8B7E74] whitespace-pre-wrap">{entry.notes || "Brak notatek"}</div>
                   </div>
                 )}
 

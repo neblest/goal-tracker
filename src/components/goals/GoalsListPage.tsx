@@ -54,12 +54,12 @@ export default function GoalsListPage() {
   const showEmpty = !goals.isInitialLoading && goals.items.length === 0 && !goals.error;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-muted/40 to-background text-foreground">
-      <header className="sticky top-0 z-20 bg-background/85 backdrop-blur">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
+      <header className="sticky top-0 z-20 bg-[#FAF8F5]/95 backdrop-blur-xl border-b border-[#E5DDD5]/60">
         <AppHeader userDisplayName="Użytkowniku" onLogout={handleLogout} />
       </header>
 
-      <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-6 px-6 pb-12 pt-4">
+      <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-8 pb-16 pt-6">
         <GoalsListControls
           status={goals.filters.status}
           search={goals.filters.search}
@@ -95,15 +95,20 @@ interface AppHeaderProps {
 
 function AppHeader({ userDisplayName, onLogout }: AppHeaderProps) {
   return (
-    <div className="border-b border-border/70">
-      <div className="flex items-center justify-between gap-4 px-6 py-3">
-        <a href="/app/goals" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <TimerReset className="size-5" aria-hidden="true" />
+    <div>
+      <div className="flex items-center justify-between gap-4 px-8 py-4">
+        <a href="/app/goals" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-[#4A3F35]">
+          <TimerReset className="size-5 text-[#D4A574]" aria-hidden="true" />
           <span>Lista celów</span>
         </a>
         <div className="flex items-center gap-4">
-          <p className="text-sm text-muted-foreground">Cześć, {userDisplayName}</p>
-          <Button variant="outline" size="sm" onClick={onLogout} className="gap-2">
+          <p className="text-sm text-[#8B7E74]">Cześć, {userDisplayName}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onLogout}
+            className="gap-2 border-[#D4A574]/30 text-[#4A3F35] hover:bg-[#D4A574]/10 hover:border-[#D4A574]"
+          >
             <LogOut className="size-4" aria-hidden="true" />
             Wyloguj
           </Button>
@@ -135,25 +140,25 @@ function GoalsListControls({
   onOrderChange,
 }: GoalsListControlsProps) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div>
-        <label className="group relative flex items-center gap-2 rounded-md border border-input bg-card px-3 py-2 shadow-sm">
-          <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+        <label className="group relative flex items-center gap-2 rounded-xl border border-[#E5DDD5] bg-white px-4 py-3 shadow-sm transition-all focus-within:border-[#D4A574] focus-within:shadow-md">
+          <Search className="size-4 text-[#8B7E74]" aria-hidden="true" />
           <Input
             aria-label="Szukaj celu"
             placeholder="Szukaj po nazwie"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             maxLength={200}
-            className="border-0 bg-transparent px-0 shadow-none outline-none ring-0 focus-visible:ring-0"
+            className="border-0 bg-transparent px-0 shadow-none outline-none ring-0 focus-visible:ring-0 text-[#4A3F35] placeholder:text-[#A89F94]"
           />
-          <span className="absolute right-3 text-[11px] text-muted-foreground">{search.trim().length}/200</span>
+          <span className="absolute right-3 text-[11px] text-[#8B7E74]">{search.trim().length}/200</span>
         </label>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium mb-2">Status</label>
+          <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Status</label>
           <Select value={status} onValueChange={(value) => onStatusChange(value as GoalStatus)}>
             <SelectTrigger aria-label="Filtruj po statusie">
               <SelectValue placeholder="Status" />
@@ -169,7 +174,7 @@ function GoalsListControls({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Sortowanie</label>
+          <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Sortowanie</label>
           <div className="grid grid-cols-2 gap-2">
             <Select value={sort} onValueChange={(value) => onSortChange(value as "created_at" | "deadline")}>
               <SelectTrigger aria-label="Sortuj">
@@ -211,7 +216,7 @@ interface ErrorBannerProps {
 function ErrorBanner({ error, onRetry }: ErrorBannerProps) {
   return (
     <div
-      className="mt-3 flex items-center gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+      className="flex items-center gap-3 rounded-xl border border-[#C17A6F]/30 bg-[#C17A6F]/10 px-4 py-3 text-sm text-[#C17A6F]"
       aria-live="polite"
     >
       <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
@@ -225,14 +230,17 @@ function ErrorBanner({ error, onRetry }: ErrorBannerProps) {
 
 function GoalsGrid({ items }: { items: GoalCardVm[] }) {
   return (
-    <section aria-label="Cele" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section aria-label="Cele" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
         <GoalCard key={item.id} item={item} />
       ))}
       {items.length > 0 && (
-        <Card className="h-full border-dashed border-2 border-muted-foreground/30 hover:border-muted-foreground/50 transition-colors">
+        <Card className="h-full rounded-2xl border-dashed border-2 border-[#D4A574]/30 hover:border-[#D4A574]/60 hover:bg-[#D4A574]/5 transition-all duration-200 bg-white">
           <CardContent className="flex items-center justify-center h-full min-h-[200px]">
-            <Button onClick={() => (window.location.href = "/app/goals/new")} className="aspect-square p-4 text-lg">
+            <Button
+              onClick={() => (window.location.href = "/app/goals/new")}
+              className="aspect-square p-4 text-lg bg-[#D4A574] hover:bg-[#C9965E] text-white"
+            >
               +
             </Button>
           </CardContent>
@@ -264,11 +272,11 @@ function GoalCard({ item }: { item: GoalCardVm }) {
   const statusIcon = useMemo(() => {
     switch (item.status) {
       case "completed_success":
-        return <CheckCircle2 className="size-4 text-green-600" aria-hidden="true" />;
+        return <CheckCircle2 className="size-4 text-[#9CAA7F]" aria-hidden="true" />;
       case "completed_failure":
-        return <XCircle className="size-4 text-red-600" aria-hidden="true" />;
+        return <XCircle className="size-4 text-[#C17A6F]" aria-hidden="true" />;
       case "abandoned":
-        return <CircleAlert className="size-4 text-yellow-600" aria-hidden="true" />;
+        return <CircleAlert className="size-4 text-[#D4A574]" aria-hidden="true" />;
       default:
         return <TimerReset className="size-4" aria-hidden="true" />;
     }
@@ -276,13 +284,13 @@ function GoalCard({ item }: { item: GoalCardVm }) {
 
   return (
     <a href={item.href} className="group block focus:outline-none">
-      <Card className="h-full border-border/70 shadow-sm transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-ring">
+      <Card className="h-full rounded-2xl border-[#E5DDD5]/60 bg-white shadow-sm transition-all duration-300 group-hover:shadow-xl group-hover:scale-[1.02] group-hover:border-[#D4A574]/40 group-focus-visible:ring-2 group-focus-visible:ring-[#D4A574]/30">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <CardTitle className="line-clamp-2 text-base font-semibold leading-tight flex-1 min-w-0">
+            <CardTitle className="line-clamp-2 text-base font-semibold leading-tight flex-1 min-w-0 text-[#4A3F35]">
               {item.name}
             </CardTitle>
-            <div className="flex items-center gap-1 text-sm shrink-0">
+            <div className="flex items-center gap-1 text-sm shrink-0 text-[#4A3F35]">
               {statusIcon}
               <span>{statusLabels[item.status]}</span>
             </div>
@@ -292,17 +300,17 @@ function GoalCard({ item }: { item: GoalCardVm }) {
           <div className="relative flex items-center justify-center">
             <svg className="size-20" viewBox="0 0 80 80" aria-hidden="true">
               <circle
-                className="text-muted"
+                className="text-[#E5DDD5]"
                 stroke="currentColor"
                 strokeWidth="8"
                 fill="transparent"
                 r={radius}
                 cx="40"
                 cy="40"
-                opacity={0.25}
+                opacity={0.5}
               />
               <circle
-                className="text-primary"
+                className="text-[#D4A574]"
                 stroke="currentColor"
                 strokeWidth="8"
                 strokeLinecap="round"
@@ -315,26 +323,24 @@ function GoalCard({ item }: { item: GoalCardVm }) {
                 transform="rotate(-90 40 40)"
               />
             </svg>
-            <div className="absolute flex flex-col items-center justify-center text-sm font-semibold">
+            <div className="absolute flex flex-col items-center justify-center text-sm font-semibold text-[#4A3F35]">
               <span>{Math.round(item.progressPercent)}%</span>
-              <span className="text-[11px] text-muted-foreground">postępu</span>
+              <span className="text-[11px] text-[#8B7E74]">postępu</span>
             </div>
           </div>
           <div className="flex flex-1 flex-col gap-2">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-[#8B7E74]">
               {item.currentValueText} / {item.targetValueText}
             </div>
             {item.showDaysRemaining ? (
-              <div className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-[12px] font-medium text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
-                <CalendarClock className="size-3.5" aria-hidden="true" />
+              <div className="inline-flex items-center gap-1 rounded-md bg-[#D4A574]/10 px-2 py-1 text-[12px] font-medium text-[#4A3F35]">
+                <CalendarClock className="size-3.5 text-[#D4A574]" aria-hidden="true" />
                 Pozostało {item.daysRemaining} dni
               </div>
             ) : null}
           </div>
         </CardContent>
-        <CardFooter className="justify-end text-xs text-muted-foreground">
-          Kliknij, aby przejść do szczegółów
-        </CardFooter>
+        <CardFooter className="justify-end text-xs text-[#8B7E74]">Kliknij, aby przejść do szczegółów</CardFooter>
       </Card>
     </a>
   );
@@ -353,7 +359,11 @@ function LoadMoreSection({ canLoadMore, isLoading, onLoadMore }: LoadMoreSection
 
   return (
     <div className="flex items-center justify-center">
-      <Button onClick={onLoadMore} disabled={!canLoadMore || isLoading} className="min-w-[160px]">
+      <Button
+        onClick={onLoadMore}
+        disabled={!canLoadMore || isLoading}
+        className="min-w-[160px] bg-[#D4A574] hover:bg-[#C9965E] text-white"
+      >
         {isLoading ? (
           <>
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -370,14 +380,14 @@ function LoadMoreSection({ canLoadMore, isLoading, onLoadMore }: LoadMoreSection
 function EmptyState({ onCreateGoal }: { onCreateGoal: () => void }) {
   return (
     <section
-      className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-muted-foreground/30 bg-card px-6 py-10 text-center"
+      className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-[#D4A574]/30 bg-white px-8 py-12 text-center"
       aria-live="polite"
     >
-      <p className="text-lg font-semibold">Brak celów</p>
-      <p className="max-w-md text-sm text-muted-foreground">
+      <p className="text-lg font-semibold text-[#4A3F35]">Brak celów</p>
+      <p className="max-w-md text-sm text-[#8B7E74]">
         Nie masz jeszcze żadnych celów. Utwórz pierwszy, aby zacząć śledzić swój postęp.
       </p>
-      <Button onClick={onCreateGoal} className="mt-2">
+      <Button onClick={onCreateGoal} className="mt-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
         Utwórz cel
       </Button>
     </section>
@@ -386,8 +396,8 @@ function EmptyState({ onCreateGoal }: { onCreateGoal: () => void }) {
 
 function LoadingState() {
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
-      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+    <div className="flex items-center gap-3 rounded-xl border border-[#E5DDD5] bg-white px-4 py-3 text-sm text-[#8B7E74] shadow-sm">
+      <Loader2 className="size-4 animate-spin text-[#D4A574]" aria-hidden="true" />
       Ładowanie celów...
     </div>
   );
