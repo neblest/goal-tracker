@@ -6,8 +6,10 @@ import {
   CircleDashed,
   Loader2,
   LogOut,
+  Plus,
   Search,
   TimerReset,
+  XCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,8 @@ import type { GoalCardVm } from "../hooks/useGoalsList";
 
 const statusLabels: Record<GoalStatus, string> = {
   active: "Aktywne",
-  completed_success: "Zakończone (sukces)",
-  completed_failure: "Zakończone (porażka)",
+  completed_success: "Zakończone",
+  completed_failure: "Niezakończone",
   abandoned: "Porzucone",
 };
 
@@ -53,21 +55,22 @@ export default function GoalsListPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/40 to-background text-foreground">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-12 pt-6">
-        <header className="sticky top-0 z-20 -mx-4 bg-background/85 px-4 pb-4 pt-3 backdrop-blur">
-          <AppHeader userDisplayName="Użytkowniku" onLogout={handleLogout} />
-          <GoalsListControls
-            status={goals.filters.status}
-            search={goals.filters.search}
-            sort={goals.filters.sort}
-            order={goals.filters.order}
-            onStatusChange={goals.handlers.setStatus}
-            onSearchChange={goals.handlers.setSearch}
-            onSortChange={goals.handlers.setSort}
-            onOrderChange={goals.handlers.setOrder}
-          />
-          {goals.error ? <ErrorBanner error={goals.error} onRetry={goals.handlers.retry} /> : null}
-        </header>
+      <header className="sticky top-0 z-20 bg-background/85 backdrop-blur">
+        <AppHeader userDisplayName="Użytkowniku" onLogout={handleLogout} />
+      </header>
+
+      <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-6 px-6 pb-12 pt-4">
+        <GoalsListControls
+          status={goals.filters.status}
+          search={goals.filters.search}
+          sort={goals.filters.sort}
+          order={goals.filters.order}
+          onStatusChange={goals.handlers.setStatus}
+          onSearchChange={goals.handlers.setSearch}
+          onSortChange={goals.handlers.setSort}
+          onOrderChange={goals.handlers.setOrder}
+        />
+        {goals.error ? <ErrorBanner error={goals.error} onRetry={goals.handlers.retry} /> : null}
 
         {goals.isInitialLoading ? <LoadingState /> : null}
 
@@ -92,18 +95,20 @@ interface AppHeaderProps {
 
 function AppHeader({ userDisplayName, onLogout }: AppHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 border-b border-border/70 pb-3">
-      <div className="flex items-center justify-between gap-4">
+    <div className="border-b border-border/70">
+      <div className="flex items-center justify-between gap-4 px-6 py-3">
         <a href="/app/goals" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           <TimerReset className="size-5" aria-hidden="true" />
           <span>Lista celów</span>
         </a>
-        <Button variant="outline" size="sm" onClick={onLogout} className="gap-2">
-          <LogOut className="size-4" aria-hidden="true" />
-          Wyloguj
-        </Button>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">Cześć, {userDisplayName}</p>
+          <Button variant="outline" size="sm" onClick={onLogout} className="gap-2">
+            <LogOut className="size-4" aria-hidden="true" />
+            Wyloguj
+          </Button>
+        </div>
       </div>
-      <p className="text-sm text-muted-foreground">Cześć, {userDisplayName}. Tu zobaczysz swoje cele i postęp.</p>
     </div>
   );
 }
@@ -130,13 +135,13 @@ function GoalsListControls({
   onOrderChange,
 }: GoalsListControlsProps) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid gap-3 sm:grid-cols-[1.1fr_0.9fr] lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
+    <div className="flex flex-col gap-4">
+      <div>
         <label className="group relative flex items-center gap-2 rounded-md border border-input bg-card px-3 py-2 shadow-sm">
           <Search className="size-4 text-muted-foreground" aria-hidden="true" />
           <Input
             aria-label="Szukaj celu"
-            placeholder="Szukaj po nazwie lub opisie"
+            placeholder="Szukaj po nazwie"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             maxLength={200}
@@ -144,46 +149,54 @@ function GoalsListControls({
           />
           <span className="absolute right-3 text-[11px] text-muted-foreground">{search.trim().length}/200</span>
         </label>
+      </div>
 
-        <Select value={status} onValueChange={(value) => onStatusChange(value as GoalStatus)}>
-          <SelectTrigger aria-label="Filtruj po statusie">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Select value={sort} onValueChange={(value) => onSortChange(value as "created_at" | "deadline")}>
-            <SelectTrigger aria-label="Sortuj">
-              <SelectValue placeholder="Sortuj" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="block text-sm font-medium mb-2">Status</label>
+          <Select value={status} onValueChange={(value) => onStatusChange(value as GoalStatus)}>
+            <SelectTrigger aria-label="Filtruj po statusie">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(sortLabels).map(([value, label]) => (
+              {Object.entries(statusLabels).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          <Select value={order} onValueChange={(value) => onOrderChange(value as "asc" | "desc")}>
-            <SelectTrigger aria-label="Kolejność sortowania">
-              <SelectValue placeholder="Kolejność" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(orderLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div>
+          <label className="block text-sm font-medium mb-2">Sortowanie</label>
+          <div className="grid grid-cols-2 gap-2">
+            <Select value={sort} onValueChange={(value) => onSortChange(value as "created_at" | "deadline")}>
+              <SelectTrigger aria-label="Sortuj">
+                <SelectValue placeholder="Sortuj" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(sortLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={order} onValueChange={(value) => onOrderChange(value as "asc" | "desc")}>
+              <SelectTrigger aria-label="Kolejność sortowania">
+                <SelectValue placeholder="Kolejność" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(orderLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
     </div>
@@ -212,10 +225,19 @@ function ErrorBanner({ error, onRetry }: ErrorBannerProps) {
 
 function GoalsGrid({ items }: { items: GoalCardVm[] }) {
   return (
-    <section aria-label="Cele" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section aria-label="Cele" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
         <GoalCard key={item.id} item={item} />
       ))}
+      {items.length > 0 && (
+        <Card className="h-full border-dashed border-2 border-muted-foreground/30 hover:border-muted-foreground/50 transition-colors">
+          <CardContent className="flex items-center justify-center h-full min-h-[200px]">
+            <Button onClick={() => (window.location.href = "/app/goals/new")} className="aspect-square p-4 text-lg">
+              +
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </section>
   );
 }
@@ -242,11 +264,11 @@ function GoalCard({ item }: { item: GoalCardVm }) {
   const statusIcon = useMemo(() => {
     switch (item.status) {
       case "completed_success":
-        return <CheckCircle2 className="size-4" aria-hidden="true" />;
+        return <CheckCircle2 className="size-4 text-green-600" aria-hidden="true" />;
       case "completed_failure":
-        return <CircleDashed className="size-4" aria-hidden="true" />;
+        return <XCircle className="size-4 text-red-600" aria-hidden="true" />;
       case "abandoned":
-        return <CircleAlert className="size-4" aria-hidden="true" />;
+        return <CircleAlert className="size-4 text-yellow-600" aria-hidden="true" />;
       default:
         return <TimerReset className="size-4" aria-hidden="true" />;
     }
@@ -256,15 +278,14 @@ function GoalCard({ item }: { item: GoalCardVm }) {
     <a href={item.href} className="group block focus:outline-none">
       <Card className="h-full border-border/70 shadow-sm transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-ring">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="line-clamp-2 text-base font-semibold leading-tight">{item.name}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <CardTitle className="line-clamp-2 text-base font-semibold leading-tight flex-1 min-w-0">
+              {item.name}
+            </CardTitle>
+            <div className="flex items-center gap-1 text-sm shrink-0">
               {statusIcon}
               <span>{statusLabels[item.status]}</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={statusVariant}>{statusLabels[item.status]}</Badge>
           </div>
         </CardHeader>
         <CardContent className="flex gap-4">
@@ -311,7 +332,9 @@ function GoalCard({ item }: { item: GoalCardVm }) {
             ) : null}
           </div>
         </CardContent>
-        <CardFooter className="justify-end text-xs text-muted-foreground">Enter, aby przejść do szczegółów</CardFooter>
+        <CardFooter className="justify-end text-xs text-muted-foreground">
+          Kliknij, aby przejść do szczegółów
+        </CardFooter>
       </Card>
     </a>
   );

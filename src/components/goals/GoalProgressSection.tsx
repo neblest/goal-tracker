@@ -1,0 +1,439 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
+import type {
+  CreateGoalProgressCommand,
+  CreateGoalProgressResponseDto,
+  DeleteProgressResponseDto,
+  GetGoalProgressResponseDto,
+  GoalProgressEntryDto,
+  GoalStatus,
+  UpdateProgressCommand,
+  UpdateProgressResponseDto,
+} from "@/types";
+
+interface GoalProgressSectionProps {
+  goalId: string;
+  goalStatus: GoalStatus;
+  onProgressChanged?: () => void;
+}
+
+interface PaginationState {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+interface ProgressState {
+  items: GoalProgressEntryDto[];
+  loading: boolean;
+  error: string | null;
+}
+
+interface DraftState {
+  value: string;
+  notes: string;
+}
+
+const PAGE_SIZE = 10;
+
+export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: GoalProgressSectionProps) {
+  const [pagination, setPagination] = useState<PaginationState>({ page: 1, pageSize: PAGE_SIZE, total: 0 });
+  const [state, setState] = useState<ProgressState>({ items: [], loading: true, error: null });
+  const [createDraft, setCreateDraft] = useState<DraftState>({ value: "", notes: "" });
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState<DraftState>({ value: "", notes: "" });
+  const [confirm, setConfirm] = useState<{ type: "create" | "update" | "delete"; entryId?: string } | null>(null);
+
+  const canEdit = goalStatus === "active";
+
+  const fetchProgress = useCallback(
+    async (page: number) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          pageSize: pagination.pageSize.toString(),
+          sort: "created_at",
+          order: "desc",
+        });
+        const response = await apiFetchJson<GetGoalProgressResponseDto>(
+          `/api/goals/${goalId}/progress?${params.toString()}`
+        );
+        setState({ items: response.data.items, loading: false, error: null });
+        setPagination({ page, pageSize: pagination.pageSize, total: response.data.total });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Nie udało się pobrać progresu.";
+        setState((prev) => ({ ...prev, loading: false, error: message }));
+      }
+    },
+    [goalId, pagination.pageSize]
+  );
+
+  useEffect(() => {
+    void fetchProgress(1);
+  }, [fetchProgress]);
+
+  const validateValue = (value: string) => {
+    const trimmed = value.trim();
+    const parsed = Number.parseFloat(trimmed);
+    if (!trimmed) {
+      return "Wartość jest wymagana.";
+    }
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return "Wartość musi być dodatnia.";
+    }
+    return null;
+  };
+
+  const handleCreate = useCallback(async () => {
+    if (!canEdit) return;
+
+    const validationError = validateValue(createDraft.value);
+    if (validationError) {
+      setCreateError(validationError);
+      return;
+    }
+
+    setCreateError(null);
+    const command: CreateGoalProgressCommand = {
+      value: createDraft.value.trim(),
+      notes: createDraft.notes.trim() || undefined,
+    };
+
+    setPendingId("new");
+    try {
+      await apiFetchJson<CreateGoalProgressResponseDto>(`/api/goals/${goalId}/progress`, {
+        method: "POST",
+        body: JSON.stringify(command),
+      });
+      setCreateDraft({ value: "", notes: "" });
+      if (onProgressChanged) {
+        onProgressChanged();
+      }
+      void fetchProgress(1);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setCreateError(error.message);
+      } else if (error instanceof Error) {
+        setCreateError(error.message);
+      } else {
+        setCreateError("Nie udało się zapisać wpisu.");
+      }
+    } finally {
+      setPendingId(null);
+    }
+  }, [canEdit, createDraft.notes, createDraft.value, fetchProgress, goalId, onProgressChanged]);
+
+  const startEdit = useCallback((entry: GoalProgressEntryDto) => {
+    setEditingId(entry.id);
+    setEditingDraft({ value: entry.value, notes: entry.notes ?? "" });
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditingDraft({ value: "", notes: "" });
+  }, []);
+
+  const handleUpdate = useCallback(
+    async (entryId: string) => {
+      if (!canEdit) return;
+      const validationError = validateValue(editingDraft.value);
+      if (validationError) {
+        setCreateError(validationError);
+        return;
+      }
+
+      const command: UpdateProgressCommand = {
+        value: editingDraft.value.trim(),
+        notes: editingDraft.notes.trim() || undefined,
+      };
+
+      setPendingId(entryId);
+      try {
+        await apiFetchJson<UpdateProgressResponseDto>(`/api/progress/${entryId}`, {
+          method: "PATCH",
+          body: JSON.stringify(command),
+        });
+        cancelEdit();
+        if (onProgressChanged) {
+          onProgressChanged();
+        }
+        void fetchProgress(pagination.page);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Nie udało się zaktualizować wpisu.";
+        setCreateError(message);
+      } finally {
+        setPendingId(null);
+      }
+    },
+    [canEdit, cancelEdit, editingDraft.notes, editingDraft.value, fetchProgress, onProgressChanged, pagination.page]
+  );
+
+  const handleDelete = useCallback(
+    async (entryId: string) => {
+      if (!canEdit) return;
+
+      setPendingId(entryId);
+      try {
+        await apiFetchJson<DeleteProgressResponseDto>(`/api/progress/${entryId}`, {
+          method: "DELETE",
+        });
+        if (onProgressChanged) {
+          onProgressChanged();
+        }
+        void fetchProgress(1);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Nie udało się usunąć wpisu.";
+        setCreateError(message);
+      } finally {
+        setPendingId(null);
+      }
+    },
+    [canEdit, fetchProgress, onProgressChanged]
+  );
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(pagination.total / pagination.pageSize)),
+    [pagination.pageSize, pagination.total]
+  );
+
+  const canSubmit = canEdit && !pendingId;
+
+  return (
+    <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Progres celu">
+      <header className="flex items-center justify-between pb-4">
+        <div>
+          <h3 className="text-base font-semibold">Postęp</h3>
+          <p className="text-sm text-muted-foreground">
+            Dodawaj i edytuj wpisy progresu. Dostępne tylko dla aktywnych celów.
+          </p>
+        </div>
+        {!canEdit ? (
+          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Tylko podgląd</span>
+        ) : null}
+      </header>
+
+      {state.error ? (
+        <div
+          className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="status"
+          aria-live="polite"
+        >
+          {state.error}
+        </div>
+      ) : null}
+
+      {canEdit ? (
+        <form
+          className="mb-5 grid gap-3 rounded-lg border border-border/70 bg-background/50 p-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setConfirm({ type: "create" });
+          }}
+          noValidate
+        >
+          <div className="grid gap-3 md:grid-cols-[200px_1fr]">
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="progress-value">
+                Wartość
+              </label>
+              <Input
+                id="progress-value"
+                value={createDraft.value}
+                onChange={(event) => setCreateDraft((prev) => ({ ...prev, value: event.target.value }))}
+                inputMode="decimal"
+                aria-invalid={Boolean(createError)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="progress-notes">
+                Notatki (opcjonalnie)
+              </label>
+              <Textarea
+                id="progress-notes"
+                value={createDraft.notes}
+                onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                rows={3}
+              />
+            </div>
+          </div>
+          {createError ? <p className="text-sm text-destructive">{createError}</p> : null}
+          <div className="flex justify-end">
+            <Button type="submit" disabled={!canSubmit} className="gap-2">
+              {pendingId === "new" ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Plus className="size-4" aria-hidden="true" />
+              )}
+              Dodaj wpis
+            </Button>
+          </div>
+        </form>
+      ) : null}
+
+      {state.loading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          Ładowanie wpisów...
+        </div>
+      ) : null}
+
+      {!state.loading && state.items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Brak wpisów progresu.</p>
+      ) : null}
+
+      <div className="grid gap-3">
+        {state.items.map((entry) => {
+          const isEditing = editingId === entry.id;
+          return (
+            <Card key={entry.id} className="border-border/70">
+              <CardHeader className="flex items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold">{new Date(entry.created_at).toLocaleString()}</CardTitle>
+                {canEdit ? (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Edytuj"
+                      onClick={() => startEdit(entry)}
+                      disabled={Boolean(pendingId)}
+                    >
+                      <Pencil className="size-4" aria-hidden="true" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Usuń"
+                      onClick={() => setConfirm({ type: "delete", entryId: entry.id })}
+                      disabled={Boolean(pendingId)}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                ) : null}
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {isEditing ? (
+                  <div className="grid gap-3 md:grid-cols-[200px_1fr]">
+                    <Input
+                      value={editingDraft.value}
+                      onChange={(event) => setEditingDraft((prev) => ({ ...prev, value: event.target.value }))}
+                      inputMode="decimal"
+                      aria-invalid={Boolean(createError)}
+                    />
+                    <Textarea
+                      value={editingDraft.notes}
+                      onChange={(event) => setEditingDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid gap-2 md:grid-cols-[200px_1fr]">
+                    <div className="font-semibold">{entry.value}</div>
+                    <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {entry.notes || "Brak notatek"}
+                    </div>
+                  </div>
+                )}
+
+                {isEditing ? (
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={cancelEdit} disabled={Boolean(pendingId)}>
+                      Anuluj
+                    </Button>
+                    <Button
+                      onClick={() => setConfirm({ type: "update", entryId: entry.id })}
+                      disabled={Boolean(pendingId)}
+                    >
+                      {pendingId === entry.id ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                      ) : (
+                        "Zapisz"
+                      )}
+                    </Button>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {state.items.length > 0 && totalPages > 1 ? (
+        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            Strona {pagination.page} z {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchProgress(Math.max(1, pagination.page - 1))}
+              disabled={pagination.page === 1 || state.loading}
+            >
+              Poprzednia
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchProgress(Math.min(totalPages, pagination.page + 1))}
+              disabled={pagination.page === totalPages || state.loading}
+            >
+              Następna
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <Dialog open={Boolean(confirm)} onOpenChange={(open) => !open && setConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirm?.type === "delete" ? "Usuń wpis" : confirm?.type === "update" ? "Zapisz zmiany" : "Dodaj wpis"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirm?.type === "delete"
+                ? "Czy na pewno chcesz usunąć ten wpis progresu?"
+                : confirm?.type === "update"
+                  ? "Potwierdź zapis zmian tego wpisu."
+                  : "Potwierdź dodanie nowego wpisu."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setConfirm(null)}>
+              Anuluj
+            </Button>
+            <Button
+              onClick={() => {
+                if (!confirm) return;
+                if (confirm.type === "create") {
+                  void handleCreate();
+                } else if (confirm.type === "update" && confirm.entryId) {
+                  void handleUpdate(confirm.entryId);
+                } else if (confirm.type === "delete" && confirm.entryId) {
+                  void handleDelete(confirm.entryId);
+                }
+                setConfirm(null);
+              }}
+              variant={confirm?.type === "delete" ? "destructive" : "default"}
+              disabled={Boolean(pendingId)}
+            >
+              Potwierdź
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </section>
+  );
+}
+
+export default GoalProgressSection;
