@@ -113,17 +113,22 @@ function GoalsListControls({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <label className="group relative flex items-center gap-2 rounded-xl border border-[#E5DDD5] bg-white px-4 py-3 shadow-sm transition-all focus-within:border-[#D4A574] focus-within:shadow-md">
-          <Search className="size-4 text-[#8B7E74]" aria-hidden="true" />
-          <Input
-            aria-label="Szukaj celu"
-            placeholder="Szukaj po nazwie"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            maxLength={200}
-            className="border-0 bg-transparent px-0 shadow-none outline-none ring-0 focus-visible:ring-0 text-[#4A3F35] placeholder:text-[#A89F94]"
-          />
-          <span className="absolute right-3 text-[11px] text-[#8B7E74]">{search.trim().length}/200</span>
+        <label className="group relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#8B7E74]" aria-hidden="true" />
+            <Input
+              aria-label="Szukaj celu"
+              placeholder="Szukaj po nazwie"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              maxLength={200}
+              className="border-0 bg-transparent pr-16 shadow-none outline-none ring-0 focus-visible:ring-0 text-[#4A3F35] placeholder:text-[#A89F94]"
+              style={{ paddingLeft: "40px" }}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#8B7E74]">
+              {search.trim().length}/200
+            </span>
+          </div>
         </label>
       </div>
 
@@ -300,7 +305,7 @@ function GoalCard({ item }: { item: GoalCardVm }) {
             </div>
           </div>
           <div className="flex flex-1 flex-col gap-2">
-            <div className="text-sm text-[#8B7E74]">
+            <div className="text-2xl text-[#8B7E74]">
               {item.currentValueText} / {item.targetValueText}
             </div>
             {item.showDaysRemaining ? (
