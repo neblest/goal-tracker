@@ -52,6 +52,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<DraftState>({ value: "", notes: "" });
   const [confirm, setConfirm] = useState<{ type: "create" | "update" | "delete"; entryId?: string } | null>(null);
+  const [isFormExpanded, setIsFormExpanded] = useState(false);
 
   const canEdit = goalStatus === "active";
 
@@ -116,6 +117,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         body: JSON.stringify(command),
       });
       setCreateDraft({ value: "", notes: "" });
+      setIsFormExpanded(false);
       if (onProgressChanged) {
         onProgressChanged();
       }
@@ -207,6 +209,68 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   );
 
   const canSubmit = canEdit && !pendingId;
+  const renderAddForm = () => {
+    if (!canEdit || !isFormExpanded) return null;
+
+    return (
+      <form
+        className="mb-5 grid gap-3 rounded-lg border border-[#E5DDD5] bg-[#FAF8F5]/50 p-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setConfirm({ type: "create" });
+        }}
+        noValidate
+      >
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-value">
+              Wartość
+            </label>
+            <Input
+              id="progress-value"
+              value={createDraft.value}
+              onChange={(event) => setCreateDraft((prev) => ({ ...prev, value: event.target.value }))}
+              inputMode="decimal"
+              aria-invalid={Boolean(createError)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
+              Notatki (opcjonalnie)
+            </label>
+            <Input
+              id="progress-notes"
+              value={createDraft.notes}
+              onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
+            />
+          </div>
+        </div>
+        {createError ? <p className="text-sm text-[#C17A6F]">{createError}</p> : null}
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setIsFormExpanded(false);
+              setCreateDraft({ value: "", notes: "" });
+              setCreateError(null);
+            }}
+            disabled={Boolean(pendingId)}
+          >
+            Anuluj
+          </Button>
+          <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
+            {pendingId === "new" ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Plus className="size-4" aria-hidden="true" />
+            )}
+            Zapisz Postęp
+          </Button>
+        </div>
+      </form>
+    );
+  };
 
   return (
     <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Progres celu">
@@ -215,9 +279,20 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
           <h3 className="text-base font-semibold text-[#4A3F35]">Postęp</h3>
           <p className="text-sm text-[#8B7E74]">Dodawaj i edytuj wpisy progresu. Dostępne tylko dla aktywnych celów.</p>
         </div>
-        {!canEdit ? (
-          <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs text-[#4A3F35]">Tylko podgląd</span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {canEdit ? (
+            <Button
+              onClick={() => setIsFormExpanded(true)}
+              disabled={Boolean(pendingId)}
+              className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Dodaj Postęp
+            </Button>
+          ) : (
+            <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs text-[#4A3F35]">Tylko podgląd</span>
+          )}
+        </div>
       </header>
 
       {state.error ? (
@@ -230,63 +305,13 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         </div>
       ) : null}
 
-      {canEdit ? (
-        <form
-          className="mb-5 grid gap-3 rounded-lg border border-[#E5DDD5] bg-[#FAF8F5]/50 p-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            setConfirm({ type: "create" });
-          }}
-          noValidate
-        >
-          <div className="grid gap-3 md:grid-cols-[200px_1fr]">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-value">
-                Wartość
-              </label>
-              <Input
-                id="progress-value"
-                value={createDraft.value}
-                onChange={(event) => setCreateDraft((prev) => ({ ...prev, value: event.target.value }))}
-                inputMode="decimal"
-                aria-invalid={Boolean(createError)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
-                Notatki (opcjonalnie)
-              </label>
-              <Textarea
-                id="progress-notes"
-                value={createDraft.notes}
-                onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
-                rows={3}
-              />
-            </div>
-          </div>
-          {createError ? <p className="text-sm text-[#C17A6F]">{createError}</p> : null}
-          <div className="flex justify-end">
-            <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
-              {pendingId === "new" ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Plus className="size-4" aria-hidden="true" />
-              )}
-              Dodaj wpis
-            </Button>
-          </div>
-        </form>
-      ) : null}
+      {state.items.length === 0 && !state.loading ? renderAddForm() : null}
 
       {state.loading ? (
         <div className="flex items-center gap-2 text-sm text-[#8B7E74]">
           <Loader2 className="size-4 animate-spin text-[#D4A574]" aria-hidden="true" />
           Ładowanie wpisów...
         </div>
-      ) : null}
-
-      {!state.loading && state.items.length === 0 ? (
-        <p className="text-sm text-[#8B7E74]">Brak wpisów progresu.</p>
       ) : null}
 
       <div className="grid gap-3">
