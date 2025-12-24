@@ -118,6 +118,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       progressPercent: goal.computed.progress_percent,
       daysRemaining: goal.computed.days_remaining,
       showDaysRemaining: goal.status === "active",
+      goalStatus: goal.status,
       isLocked: goal.computed.is_locked,
       onSubmit: handleUpdateGoal,
       onAbandon: handleAbandon,
@@ -172,6 +173,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
               status={state.goal.status}
               aiSummary={state.goal.ai_summary}
               entriesCount={state.goal.computed.entries_count}
+              reflectionNotes={state.goal.reflection_notes}
               onSave={(value) => handleUpdateGoal({ ai_summary: value })}
             />
           </div>

@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
 import type {
@@ -116,6 +116,11 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         method: "POST",
         body: JSON.stringify(command),
       });
+      // Sync goal status after progress change
+      await apiFetchJson(`/api/goals/sync-statuses`, {
+        method: "POST",
+        body: JSON.stringify({ goal_ids: [goalId] }),
+      });
       setCreateDraft({ value: "", notes: "" });
       setIsFormExpanded(false);
       if (onProgressChanged) {
@@ -165,6 +170,11 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
           method: "PATCH",
           body: JSON.stringify(command),
         });
+        // Sync goal status after progress change
+        await apiFetchJson(`/api/goals/sync-statuses`, {
+          method: "POST",
+          body: JSON.stringify({ goal_ids: [goalId] }),
+        });
         cancelEdit();
         if (onProgressChanged) {
           onProgressChanged();
@@ -189,6 +199,11 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         await apiFetchJson<DeleteProgressResponseDto>(`/api/progress/${entryId}`, {
           method: "DELETE",
         });
+        // Sync goal status after progress change
+        await apiFetchJson(`/api/goals/sync-statuses`, {
+          method: "POST",
+          body: JSON.stringify({ goal_ids: [goalId] }),
+        });
         if (onProgressChanged) {
           onProgressChanged();
         }
@@ -209,68 +224,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   );
 
   const canSubmit = canEdit && !pendingId;
-  const renderAddForm = () => {
-    if (!canEdit || !isFormExpanded) return null;
-
-    return (
-      <form
-        className="mb-5 grid gap-3 rounded-lg border border-[#E5DDD5] bg-[#FAF8F5]/50 p-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setConfirm({ type: "create" });
-        }}
-        noValidate
-      >
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-value">
-              Wartość
-            </label>
-            <Input
-              id="progress-value"
-              value={createDraft.value}
-              onChange={(event) => setCreateDraft((prev) => ({ ...prev, value: event.target.value }))}
-              inputMode="decimal"
-              aria-invalid={Boolean(createError)}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
-              Notatki (opcjonalnie)
-            </label>
-            <Input
-              id="progress-notes"
-              value={createDraft.notes}
-              onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
-            />
-          </div>
-        </div>
-        {createError ? <p className="text-sm text-[#C17A6F]">{createError}</p> : null}
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsFormExpanded(false);
-              setCreateDraft({ value: "", notes: "" });
-              setCreateError(null);
-            }}
-            disabled={Boolean(pendingId)}
-          >
-            Anuluj
-          </Button>
-          <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
-            {pendingId === "new" ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : (
-              <Plus className="size-4" aria-hidden="true" />
-            )}
-            Zapisz Postęp
-          </Button>
-        </div>
-      </form>
-    );
-  };
 
   return (
     <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Progres celu">
@@ -305,8 +258,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         </div>
       ) : null}
 
-      {state.items.length === 0 && !state.loading ? renderAddForm() : null}
-
       {state.loading ? (
         <div className="flex items-center gap-2 text-sm text-[#8B7E74]">
           <Loader2 className="size-4 animate-spin text-[#D4A574]" aria-hidden="true" />
@@ -314,83 +265,146 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         </div>
       ) : null}
 
-      <div className="grid gap-3">
-        {state.items.map((entry) => {
-          const isEditing = editingId === entry.id;
-          return (
-            <Card key={entry.id} className="border-[#E5DDD5] bg-white">
-              <CardHeader className="flex items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-semibold text-[#4A3F35]">
-                  {new Date(entry.created_at).toLocaleString()}
-                </CardTitle>
-                {canEdit ? (
-                  <div className="flex gap-2">
+      <div className="max-h-55 overflow-y-auto">
+        <div className="grid gap-3">
+          {isFormExpanded && !state.loading && canEdit ? (
+            <Card className="border-[#E5DDD5] bg-[#FAF8F5]/50">
+              <CardContent className="p-4">
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    setConfirm({ type: "create" });
+                  }}
+                  noValidate
+                >
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-value">
+                        Wartość
+                      </label>
+                      <Input
+                        id="progress-value"
+                        value={createDraft.value}
+                        onChange={(event) => setCreateDraft((prev) => ({ ...prev, value: event.target.value }))}
+                        inputMode="decimal"
+                        aria-invalid={Boolean(createError)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
+                        Notatki (opcjonalnie)
+                      </label>
+                      <Input
+                        id="progress-notes"
+                        value={createDraft.notes}
+                        onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  {createError ? <p className="text-sm text-[#C17A6F]">{createError}</p> : null}
+                  <div className="flex justify-end gap-2 mt-3">
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Edytuj"
-                      onClick={() => startEdit(entry)}
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsFormExpanded(false);
+                        setCreateDraft({ value: "", notes: "" });
+                        setCreateError(null);
+                      }}
                       disabled={Boolean(pendingId)}
-                      className="hover:bg-[#D4A574]/10 text-[#4A3F35]"
                     >
-                      <Pencil className="size-4" aria-hidden="true" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Usuń"
-                      onClick={() => setConfirm({ type: "delete", entryId: entry.id })}
-                      disabled={Boolean(pendingId)}
-                      className="hover:bg-[#C17A6F]/10 text-[#C17A6F]"
-                    >
-                      <Trash2 className="size-4" aria-hidden="true" />
-                    </Button>
-                  </div>
-                ) : null}
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {isEditing ? (
-                  <div className="grid gap-3 md:grid-cols-[200px_1fr]">
-                    <Input
-                      value={editingDraft.value}
-                      onChange={(event) => setEditingDraft((prev) => ({ ...prev, value: event.target.value }))}
-                      inputMode="decimal"
-                      aria-invalid={Boolean(createError)}
-                    />
-                    <Textarea
-                      value={editingDraft.notes}
-                      onChange={(event) => setEditingDraft((prev) => ({ ...prev, notes: event.target.value }))}
-                      rows={3}
-                    />
-                  </div>
-                ) : (
-                  <div className="grid gap-2 md:grid-cols-[200px_1fr]">
-                    <div className="font-semibold text-[#4A3F35]">{entry.value}</div>
-                    <div className="text-sm text-[#8B7E74] whitespace-pre-wrap">{entry.notes || "Brak notatek"}</div>
-                  </div>
-                )}
-
-                {isEditing ? (
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={cancelEdit} disabled={Boolean(pendingId)}>
                       Anuluj
                     </Button>
                     <Button
-                      onClick={() => setConfirm({ type: "update", entryId: entry.id })}
-                      disabled={Boolean(pendingId)}
+                      type="submit"
+                      disabled={!canSubmit}
+                      className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
                     >
-                      {pendingId === entry.id ? (
+                      {pendingId === "new" ? (
                         <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                       ) : (
-                        "Zapisz"
+                        <Plus className="size-4" aria-hidden="true" />
                       )}
+                      Zapisz Postęp
                     </Button>
                   </div>
-                ) : null}
+                </form>
               </CardContent>
             </Card>
-          );
-        })}
+          ) : null}
+
+          {state.items.map((entry) => {
+            const isEditing = editingId === entry.id;
+            return (
+              <Card key={entry.id} className="border-[#E5DDD5] bg-white">
+                <CardContent className="flex items-center gap-4 py-3">
+                  {isEditing ? (
+                    <>
+                      <Input
+                        className="w-16"
+                        value={editingDraft.value}
+                        onChange={(event) => setEditingDraft((prev) => ({ ...prev, value: event.target.value }))}
+                        inputMode="decimal"
+                        aria-invalid={Boolean(createError)}
+                      />
+                      <Input
+                        className="flex-1"
+                        value={editingDraft.notes}
+                        onChange={(event) => setEditingDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                      />
+                      <div className="text-sm text-[#4A3F35]">{new Date(entry.created_at).toLocaleString()}</div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={cancelEdit} disabled={Boolean(pendingId)}>
+                          Anuluj
+                        </Button>
+                        <Button
+                          onClick={() => setConfirm({ type: "update", entryId: entry.id })}
+                          disabled={Boolean(pendingId)}
+                        >
+                          {pendingId === entry.id ? (
+                            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                          ) : (
+                            "Zapisz"
+                          )}
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-16 font-semibold text-[#4A3F35]">{entry.value}</div>
+                      <div className="flex-1 text-sm text-[#8B7E74] truncate">{entry.notes || "Brak notatek"}</div>
+                      <div className="text-sm text-[#4A3F35]">{new Date(entry.created_at).toLocaleString()}</div>
+                      {canEdit ? (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Edytuj"
+                            onClick={() => startEdit(entry)}
+                            disabled={Boolean(pendingId)}
+                            className="hover:bg-[#D4A574]/10 text-[#4A3F35]"
+                          >
+                            <Pencil className="size-4" aria-hidden="true" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Usuń"
+                            onClick={() => setConfirm({ type: "delete", entryId: entry.id })}
+                            disabled={Boolean(pendingId)}
+                            className="hover:bg-[#C17A6F]/10 text-[#C17A6F]"
+                          >
+                            <Trash2 className="size-4" aria-hidden="true" />
+                          </Button>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {state.items.length > 0 && totalPages > 1 ? (

@@ -26,6 +26,7 @@ type GoalDetailsState =
 export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   const [state, setState] = useState<GoalDetailsState>({ status: "loading" });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleBack = useCallback(() => {
     window.history.back();
@@ -69,13 +70,20 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
 
     const { goal } = state;
     return {
+      goalName: goal.name,
+      deadline: goal.deadline,
+      targetValue: goal.target_value,
       currentValueText: goal.computed.current_value,
       targetValueText: goal.target_value,
       progressPercent: goal.computed.progress_percent,
       daysRemaining: goal.computed.days_remaining,
       showDaysRemaining: goal.status === "active",
+      goalStatus: goal.status,
+      isLocked: goal.computed.is_locked,
+      onSubmit: handleUpdateGoal,
+      onAbandon: handleAbandon,
     };
-  }, [state]);
+  }, [state, handleUpdateGoal, handleAbandon]);
 
   const handleUpdateGoal = useCallback(
     async (command: UpdateGoalCommand) => {
@@ -107,6 +115,15 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     if (state.status !== "success") return;
     await fetchGoal({ keepData: true });
   }, [fetchGoal, state]);
+
+  const handleToggleEditing = useCallback(() => {
+    setIsEditing((prev) => !prev);
+  }, []);
+
+  const handleAbandon = useCallback(async (reason: string) => {
+    // Modal doesn't support abandoning - redirect to full page or show message
+    console.warn("Abandon functionality not available in modal view");
+  }, []);
 
   const handleStatusChanged = useCallback(
     (status: GoalStatus) => {
@@ -172,7 +189,10 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
               name={state.goal.name}
               targetValue={state.goal.target_value}
               deadline={state.goal.deadline}
+              goalStatus={state.goal.status}
               isLocked={state.goal.computed.is_locked}
+              isEditing={isEditing}
+              onToggleEditing={handleToggleEditing}
               onSubmit={handleUpdateGoal}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

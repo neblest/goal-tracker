@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api/apiFetchJson";
 import { normalizeTrim, validateDeadlineFuture, validateGoalName, validateTargetValue } from "@/lib/goals/validation";
-import type { UpdateGoalCommand } from "@/types";
+import type { GoalStatus, UpdateGoalCommand } from "@/types";
 
 interface GoalEditableFieldsSectionProps {
   name: string;
   targetValue: string;
   deadline: string;
+  goalStatus: GoalStatus;
   isLocked: boolean;
   isEditing: boolean;
   onToggleEditing: () => void;
@@ -28,6 +29,7 @@ export function GoalEditableFieldsSection({
   name,
   targetValue,
   deadline,
+  goalStatus,
   isLocked,
   isEditing,
   onToggleEditing,
@@ -131,12 +133,16 @@ export function GoalEditableFieldsSection({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isLocked ? (
-            <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs font-medium text-[#4A3F35]">Zablokowane</span>
-          ) : !isEditing ? (
-            <Button onClick={onToggleEditing} variant="outline" size="sm">
-              Edytuj
-            </Button>
+          {goalStatus === "active" ? (
+            isLocked ? (
+              <Button disabled variant="outline" size="sm" title="Edycja jest zablokowana z powodu trwającego progresu">
+                Edytuj
+              </Button>
+            ) : !isEditing ? (
+              <Button onClick={onToggleEditing} variant="outline" size="sm">
+                Edytuj
+              </Button>
+            ) : null
           ) : null}
         </div>
       </header>

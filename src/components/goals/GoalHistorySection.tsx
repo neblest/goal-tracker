@@ -50,16 +50,13 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
           <h3 className="text-base font-semibold text-[#4A3F35]">Historia iteracji</h3>
           <p className="text-sm text-[#8B7E74]">Łańcuch powiązanych celów tworzony przy retry/continue.</p>
         </div>
-        <Button size="sm" variant="outline" onClick={fetchHistory} disabled={loading}>
-          Odśwież
-        </Button>
       </header>
 
       {loading ? <p className="text-sm text-[#8B7E74]">Ładowanie historii...</p> : null}
       {error ? <p className="text-sm text-[#C17A6F]">{error}</p> : null}
       {!loading && !error && items.length === 0 ? <p className="text-sm text-[#8B7E74]">Brak historii.</p> : null}
 
-      <div className="grid gap-3">
+      <div className="max-h-55 overflow-y-auto grid gap-3">
         {items.map((item) => {
           const isActive = item.id === activeGoalId;
           return (
