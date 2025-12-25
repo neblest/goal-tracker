@@ -252,6 +252,10 @@ export type AbandonGoalResponseDto = ApiSuccessDto<{
   goal: Pick<GoalPublicFieldsDto, "id" | "status" | "abandonment_reason">;
 }>;
 
+export type CompleteGoalResponseDto = ApiSuccessDto<{
+  goal: Pick<GoalPublicFieldsDto, "id" | "status" | "ai_summary" | "ai_generation_attempts">;
+}>;
+
 export interface RetryGoalCommand {
   target_value: DecimalString;
   deadline: DbGoalRow["deadline"];

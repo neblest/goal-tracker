@@ -251,6 +251,103 @@ export async function retryGoal(
 }
 
 /**
+ * Manually completes an active goal with success status
+ *
+ * Business rules:
+ * - Goal must exist and belong to the user
+ * - Goal must be in 'active' status
+ * - Current value (sum of progress entries) must be >= target value
+ * - Sets status to 'completed_success'
+ * - AI summary generation is triggered if conditions are met (≥3 progress entries)
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - Authenticated user's ID
+ * @param goalId - Goal UUID to complete
+ * @returns Goal data with id, status, ai_summary, and ai_generation_attempts
+ * @throws Error with specific code for proper HTTP error mapping:
+ *   - "goal_not_found": Goal doesn't exist or user lacks access (404)
+ *   - "goal_not_active": Goal is not in active status (409)
+ *   - "target_not_reached": Current value is less than target value (409)
+ *   - "database_error": Database operation failed (500)
+ */
+export async function completeGoal(
+  supabase: SupabaseClient,
+  userId: string,
+  goalId: string
+): Promise<Pick<GoalPublicFieldsDto, "id" | "status" | "ai_summary" | "ai_generation_attempts">> {
+  // Step 1: Fetch the goal to verify ownership and current status
+  const { data: goal, error: fetchError } = await supabase
+    .from("goals")
+    .select("id, status, target_value")
+    .eq("id", goalId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (fetchError) {
+    // eslint-disable-next-line no-console
+    console.error("Error fetching goal for completion:", fetchError);
+    throw new Error("database_error");
+  }
+
+  if (!goal) {
+    throw new Error("goal_not_found");
+  }
+
+  // Step 2: Verify goal is in active status
+  if (goal.status !== "active") {
+    throw new Error("goal_not_active");
+  }
+
+  // Step 3: Calculate current value from progress entries
+  const { data: progressEntries, error: progressError } = await supabase
+    .from("goal_progress")
+    .select("value")
+    .eq("goal_id", goalId);
+
+  if (progressError) {
+    // eslint-disable-next-line no-console
+    console.error("Error fetching progress for completion:", progressError);
+    throw new Error("database_error");
+  }
+
+  const currentValue = progressEntries ? progressEntries.reduce((sum, entry) => sum + Number(entry.value), 0) : 0;
+
+  // Step 4: Verify target value has been reached
+  if (currentValue < goal.target_value) {
+    throw new Error("target_not_reached");
+  }
+
+  // Step 5: Update goal to completed_success status
+  const { data: updatedGoal, error: updateError } = await supabase
+    .from("goals")
+    .update({
+      status: "completed_success",
+    })
+    .eq("id", goalId)
+    .eq("user_id", userId)
+    .select("id, status, ai_summary, ai_generation_attempts")
+    .single();
+
+  if (updateError || !updatedGoal) {
+    // eslint-disable-next-line no-console
+    console.error("Error updating goal to completed_success:", updateError);
+    throw new Error("database_error");
+  }
+
+  // Step 6: Trigger AI summary generation if conditions are met
+  // Note: AI summary generation logic would be implemented here or via a separate service
+  // For now, we return the goal data as-is
+  // TODO: Implement AI summary generation trigger
+
+  return {
+    id: updatedGoal.id,
+    status: updatedGoal.status,
+    ai_summary: updatedGoal.ai_summary,
+    ai_generation_attempts: updatedGoal.ai_generation_attempts,
+  };
+}
+
+/**
  * Helper: Get end of day (23:59:59.999) for a given YYYY-MM-DD date string
  * Uses local timezone of the server process
  */
@@ -288,10 +385,9 @@ function determineNewStatus(
     return null;
   }
 
-  // Rule: Success if target reached
-  if (currentValue >= targetValue) {
-    return "completed_success";
-  }
+  // Note: Success is no longer applied automatically when target is reached.
+  // Manual completion is required by the user per updated product requirements.
+  // Therefore we do NOT transition to "completed_success" here.
 
   // Rule: Failure if deadline passed and target not reached
   const now = new Date();

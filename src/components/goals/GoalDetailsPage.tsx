@@ -62,7 +62,21 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   );
 
   useEffect(() => {
-    void fetchGoal();
+    (async () => {
+      try {
+        await apiFetchJson(`/api/goals/sync-statuses`, {
+          method: "POST",
+          body: JSON.stringify({ goal_ids: [goalId] }),
+        });
+      } catch (e) {
+        // Silent by design; we don't block rendering on sync-statuses
+        // It only applies failure transitions after deadline now.
+        // eslint-disable-next-line no-console
+        console.warn("sync-statuses failed for goal details", e);
+      }
+
+      void fetchGoal();
+    })();
   }, [fetchGoal]);
 
   const handleUpdateGoal = useCallback(
@@ -103,6 +117,14 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     [fetchGoal, goalId, state]
   );
 
+  const handleComplete = useCallback(async () => {
+    if (state.status !== "success") return;
+    await apiFetchJson(`/api/goals/${goalId}/complete`, {
+      method: "PATCH",
+    });
+    await fetchGoal({ keepData: true });
+  }, [fetchGoal, goalId, state]);
+
   const metrics = useMemo(() => {
     if (state.status !== "success") {
       return null;
@@ -120,10 +142,12 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       showDaysRemaining: goal.status === "active",
       goalStatus: goal.status,
       isLocked: goal.computed.is_locked,
+      goalId: goal.id,
       onSubmit: handleUpdateGoal,
       onAbandon: handleAbandon,
+      onComplete: handleComplete,
     };
-  }, [state, handleUpdateGoal]);
+  }, [state, handleUpdateGoal, handleAbandon, handleComplete]);
 
   const refreshGoal = useCallback(async () => {
     if (state.status !== "success") return;

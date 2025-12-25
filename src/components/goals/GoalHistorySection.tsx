@@ -27,7 +27,12 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
     setError(null);
     try {
       const response = await apiFetchJson<GetGoalHistoryResponseDto>(`/api/goals/${goalId}/history`);
-      setItems(response.data.items);
+      const items = response.data.items.slice().sort((a, b) => {
+        const ta = new Date(a.created_at).getTime();
+        const tb = new Date(b.created_at).getTime();
+        return tb - ta; // newest first
+      });
+      setItems(items);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Nie udało się wczytać historii.";
       setError(message);

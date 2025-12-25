@@ -125,11 +125,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         method: "POST",
         body: JSON.stringify(command),
       });
-      // Sync goal status after progress change
-      await apiFetchJson(`/api/goals/sync-statuses`, {
-        method: "POST",
-        body: JSON.stringify({ goal_ids: [goalId] }),
-      });
       setCreateDraft({ value: "", notes: "" });
       setIsFormExpanded(false);
       if (onProgressChanged) {
@@ -179,11 +174,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
           method: "PATCH",
           body: JSON.stringify(command),
         });
-        // Sync goal status after progress change
-        await apiFetchJson(`/api/goals/sync-statuses`, {
-          method: "POST",
-          body: JSON.stringify({ goal_ids: [goalId] }),
-        });
         cancelEdit();
         if (onProgressChanged) {
           onProgressChanged();
@@ -219,11 +209,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         method: "PATCH",
         body: JSON.stringify(command),
       });
-      // Sync goal status after progress change
-      await apiFetchJson(`/api/goals/sync-statuses`, {
-        method: "POST",
-        body: JSON.stringify({ goal_ids: [goalId] }),
-      });
       setSelectedEntry(null);
       if (onProgressChanged) {
         onProgressChanged();
@@ -254,11 +239,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       try {
         await apiFetchJson<DeleteProgressResponseDto>(`/api/progress/${entryId}`, {
           method: "DELETE",
-        });
-        // Sync goal status after progress change
-        await apiFetchJson(`/api/goals/sync-statuses`, {
-          method: "POST",
-          body: JSON.stringify({ goal_ids: [goalId] }),
         });
         if (onProgressChanged) {
           onProgressChanged();

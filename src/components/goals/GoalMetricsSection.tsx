@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,8 +21,10 @@ interface GoalMetricsSectionProps {
   showDaysRemaining: boolean;
   goalStatus: GoalStatus;
   isLocked: boolean;
+  goalId?: string;
   onSubmit: (command: UpdateGoalCommand) => Promise<void>;
   onAbandon: (reason: string) => Promise<void>;
+  onComplete?: () => Promise<void>;
 }
 
 export function GoalMetricsSection({
@@ -36,8 +38,10 @@ export function GoalMetricsSection({
   showDaysRemaining,
   goalStatus,
   isLocked,
+  goalId,
   onSubmit,
   onAbandon,
+  onComplete,
 }: GoalMetricsSectionProps) {
   const baseId = useId();
   const [isEditing, setIsEditing] = useState(false);
@@ -129,6 +133,9 @@ export function GoalMetricsSection({
   const radius = 56;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (clampedPercent / 100) * circumference;
+  const [completing, setCompleting] = useState(false);
+
+  const canShowCompleteButton = goalStatus === "active" && clampedPercent >= 100;
 
   return (
     <>
@@ -243,41 +250,108 @@ export function GoalMetricsSection({
                       Porzuć
                     </Button>
                   </>
+                ) : goalStatus === "completed_success" ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        const params = new URLSearchParams();
+                        if (goalId) params.set("parent_goal_id", goalId);
+                        if (goalName) params.set("name", goalName);
+                        if (targetValue) params.set("target_value", targetValue);
+                        // Do not prefill deadline for continued or retried goals
+                        window.location.href = `/app/goals/new?${params.toString()}`;
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="text-[#D4A574] hover:text-[#C9965E]"
+                    >
+                      Kontynuuj
+                    </Button>
+                  </>
+                ) : goalStatus === "completed_failure" ? (
+                  // For failed goals allow retry by creating a linked goal
+                  <>
+                    <Button
+                      onClick={() => {
+                        const params = new URLSearchParams();
+                        if (goalId) params.set("parent_goal_id", goalId);
+                        if (goalName) params.set("name", goalName);
+                        if (targetValue) params.set("target_value", targetValue);
+                        // Do not prefill deadline for continued or retried goals
+                        // mark that this is a retry
+                        params.set("retry", "1");
+                        window.location.href = `/app/goals/new?${params.toString()}`;
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="text-[#C17A6F] hover:text-[#A85B50]"
+                    >
+                      Ponów
+                    </Button>
+                  </>
                 ) : null}
               </div>
             </header>
 
             <div className="grid items-center gap-6 md:grid-cols-[180px_1fr]">
               <div className="relative flex items-center justify-center">
-                <svg className="size-36" viewBox="0 0 160 160" role="img" aria-label={`Postęp ${clampedPercent}%`}>
-                  <circle
-                    className="text-[#E5DDD5]"
-                    stroke="currentColor"
-                    strokeWidth="12"
-                    fill="transparent"
-                    r={radius}
-                    cx="80"
-                    cy="80"
-                    opacity={0.5}
-                  />
-                  <circle
-                    className="text-[#D4A574]"
-                    stroke="currentColor"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    fill="transparent"
-                    r={radius}
-                    cx="80"
-                    cy="80"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    transform="rotate(-90 80 80)"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center text-lg font-semibold text-[#4A3F35]">
-                  <span>{Math.round(clampedPercent)}%</span>
-                  <span className="text-xs text-[#8B7E74]">postępu</span>
-                </div>
+                {canShowCompleteButton ? (
+                  <Button
+                    onClick={async () => {
+                      if (!onComplete || completing) return;
+                      try {
+                        setCompleting(true);
+                        await onComplete();
+                      } finally {
+                        setCompleting(false);
+                      }
+                    }}
+                    aria-label="Zakończ cel"
+                    disabled={completing}
+                    className={`size-36 flex flex-col items-center justify-center rounded-full gap-0 bg-[#D4A574] hover:bg-[#C9965E] text-white font-semibold`}
+                  >
+                    {completing ? (
+                      <Loader2 className="size-6 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <>
+                        <span className="text-lg">Zakończ!</span>
+                        <span className="text-xs font-normal">Cel osiągnięty</span>
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <>
+                    <svg className="size-36" viewBox="0 0 160 160" role="img" aria-label={`Postęp ${clampedPercent}%`}>
+                      <circle
+                        className="text-[#E5DDD5]"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        fill="transparent"
+                        r={radius}
+                        cx="80"
+                        cy="80"
+                        opacity={0.5}
+                      />
+                      <circle
+                        className="text-[#D4A574]"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        fill="transparent"
+                        r={radius}
+                        cx="80"
+                        cy="80"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        transform="rotate(-90 80 80)"
+                      />
+                    </svg>
+                    <div className="absolute flex flex-col items-center justify-center text-lg font-semibold text-[#4A3F35]">
+                      <span>{Math.round(clampedPercent)}%</span>
+                      <span className="text-xs text-[#8B7E74]">postępu</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex flex-col gap-3">

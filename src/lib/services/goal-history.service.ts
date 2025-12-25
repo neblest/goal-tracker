@@ -83,7 +83,17 @@ export async function listGoalHistory(
   }
 
   // Step 6: Map to GoalHistoryItemDto with computed current_value
-  const items: GoalHistoryItemDto[] = historyData.map(
+  // Ensure explicit ordering based on query.order (default handled by caller)
+  const orderedHistory = Array.isArray(historyData) ? historyData.slice() : [];
+  orderedHistory.sort((a: any, b: any) => {
+    const ta = new Date(a.created_at).getTime();
+    const tb = new Date(b.created_at).getTime();
+    // If query.order === 'desc' -> newest first
+    if (query.order === "desc") return tb - ta;
+    return ta - tb;
+  });
+
+  const items: GoalHistoryItemDto[] = orderedHistory.map(
     (goal: {
       id: string;
       parent_goal_id: string | null;
@@ -104,12 +114,6 @@ export async function listGoalHistory(
     })
   );
 
-  // Step 7: Sort items according to query parameters
-  // The RPC function returns items ordered by created_at ASC by default
-  // We only need to reverse if order is 'desc'
-  if (query.order === "desc") {
-    items.reverse();
-  }
 
   return { items };
 }

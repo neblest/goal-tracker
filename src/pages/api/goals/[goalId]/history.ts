@@ -15,7 +15,7 @@ const goalIdSchema = z.string().uuid("Goal ID must be a valid UUID");
  */
 const querySchema = z.object({
   sort: z.enum(["created_at"]).optional().default("created_at"),
-  order: z.enum(["asc", "desc"]).optional().default("asc"),
+  order: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 /**
@@ -29,7 +29,7 @@ const querySchema = z.object({
  * Business rules:
  * - User must be authenticated (401 if not)
  * - Goal must belong to authenticated user (404 if not found)
- * - Returns chronologically sorted list of all goals in the chain
+ * - Returns chronologically sorted list of all goals in the chain (newest first by default)
  *
  * Test scenarios:
  * 1. Success (200):
@@ -37,7 +37,7 @@ const querySchema = z.object({
  *    Authorization: Bearer <valid_token>
  *
  * 2. Success with sorting (200):
- *    GET /api/goals/<valid_goal_uuid>/history?order=desc
+ *    GET /api/goals/<valid_goal_uuid>/history?order=asc
  *
  * 3. Invalid UUID (400):
  *    GET /api/goals/invalid-uuid/history

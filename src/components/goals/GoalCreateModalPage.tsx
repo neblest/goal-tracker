@@ -8,6 +8,30 @@ import type { CreateGoalCommand, CreateGoalResponseDto } from "@/types";
 export default function GoalCreateModalPage() {
   const [open, setOpen] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  type InitialValues = Partial<{
+    name: string;
+    target_value: string;
+    deadline: string;
+    parent_goal_id: string | null;
+  }>;
+
+  const [initialValues] = useState<InitialValues>(() => {
+    try {
+      const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+      const iv: Partial<GoalCreateFormVm> = {};
+      const name = params.get("name");
+      const target_value = params.get("target_value");
+      const deadline = params.get("deadline");
+      const parent_goal_id = params.get("parent_goal_id");
+      if (name) iv.name = name;
+      if (target_value) iv.target_value = target_value;
+      if (deadline) iv.deadline = deadline;
+      if (parent_goal_id) iv.parent_goal_id = parent_goal_id;
+      return iv;
+    } catch (e) {
+      return {} as InitialValues;
+    }
+  });
 
   const navigateBack = useCallback(() => {
     window.location.href = "/app/goals";
@@ -61,6 +85,7 @@ export default function GoalCreateModalPage() {
           </DialogHeader>
 
           <GoalCreateForm
+            initialValues={initialValues}
             isSubmitting={isSubmitting}
             onSubmit={handleSubmit}
             onCancel={() => handleOpenChange(false)}

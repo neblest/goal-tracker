@@ -269,6 +269,11 @@ function GoalCard({ item }: { item: GoalCardVm }) {
             <div className="flex items-center gap-1 text-sm shrink-0 text-[#4A3F35]">
               {statusIcon}
               <span>{statusLabels[item.status]}</span>
+              {item.status === "active" && item.progressPercent >= 100 ? (
+                <Badge className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-[#9CAA7F]/10 text-[#9CAA7F]">
+                  Zakończ
+                </Badge>
+              ) : null}
             </div>
           </div>
         </CardHeader>
