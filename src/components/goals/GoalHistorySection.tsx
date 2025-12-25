@@ -67,15 +67,17 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
                 if (isActive) return;
                 window.location.href = `/app/goals/${item.id}`;
               }}
-              className="flex w-full flex-col gap-1 rounded-lg border border-[#E5DDD5] bg-[#FAF8F5] px-4 py-3 text-left transition hover:border-[#D4A574] hover:bg-white"
+              className="flex w-full items-center justify-between rounded-lg border border-[#E5DDD5] bg-[#FAF8F5] px-4 py-3 text-left transition hover:border-[#D4A574] hover:bg-white"
               aria-current={isActive ? "true" : undefined}
             >
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-[#4A3F35]">{item.name}</span>
-                <Badge variant={isActive ? "default" : "outline"}>{statusLabels[item.status]}</Badge>
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <span className="font-semibold text-[#4A3F35] flex-shrink-0 truncate">{item.name}</span>
+                <span className="text-sm text-[#8B7E74] flex-shrink-0">Postęp {item.computed.current_value}</span>
+                <span className="text-sm text-[#8B7E74] flex-shrink-0">Data zakończenia: {item.deadline}</span>
               </div>
-              <div className="text-xs text-[#8B7E74]">Deadline: {item.deadline}</div>
-              <div className="text-xs text-[#8B7E74]">Aktualna wartość: {item.computed.current_value}</div>
+              <Badge variant={isActive ? "default" : "outline"} className="flex-shrink-0 ml-4">
+                {statusLabels[item.status]}
+              </Badge>
             </button>
           );
         })}

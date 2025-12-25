@@ -53,6 +53,9 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   const [editingDraft, setEditingDraft] = useState<DraftState>({ value: "", notes: "" });
   const [confirm, setConfirm] = useState<{ type: "create" | "update" | "delete"; entryId?: string } | null>(null);
   const [isFormExpanded, setIsFormExpanded] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<GoalProgressEntryDto | null>(null);
+  const [modalDraft, setModalDraft] = useState<DraftState>({ value: "", notes: "" });
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const canEdit = goalStatus === "active";
 
@@ -83,14 +86,20 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
     void fetchProgress(1);
   }, [fetchProgress]);
 
+  useEffect(() => {
+    if (selectedEntry) {
+      setModalDraft({ value: selectedEntry.value, notes: selectedEntry.notes ?? "" });
+    }
+  }, [selectedEntry]);
+
   const validateValue = (value: string) => {
     const trimmed = value.trim();
-    const parsed = Number.parseFloat(trimmed);
     if (!trimmed) {
       return "Wartość jest wymagana.";
     }
+    const parsed = Number.parseFloat(trimmed);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      return "Wartość musi być dodatnia.";
+      return "Wartość musi być dodatnią liczbą.";
     }
     return null;
   };
@@ -190,6 +199,53 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
     [canEdit, cancelEdit, editingDraft.notes, editingDraft.value, fetchProgress, onProgressChanged, pagination.page]
   );
 
+  const handleModalSave = useCallback(async () => {
+    if (!selectedEntry || !canEdit) return;
+    const validationError = validateValue(modalDraft.value);
+    if (validationError) {
+      setModalError(validationError);
+      return;
+    }
+
+    setModalError(null);
+    const command: UpdateProgressCommand = {
+      value: modalDraft.value.trim(),
+      notes: modalDraft.notes.trim() || undefined,
+    };
+
+    setPendingId(selectedEntry.id);
+    try {
+      await apiFetchJson<UpdateProgressResponseDto>(`/api/progress/${selectedEntry.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(command),
+      });
+      // Sync goal status after progress change
+      await apiFetchJson(`/api/goals/sync-statuses`, {
+        method: "POST",
+        body: JSON.stringify({ goal_ids: [goalId] }),
+      });
+      setSelectedEntry(null);
+      if (onProgressChanged) {
+        onProgressChanged();
+      }
+      void fetchProgress(pagination.page);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Nie udało się zaktualizować wpisu.";
+      setCreateError(message);
+    } finally {
+      setPendingId(null);
+    }
+  }, [
+    selectedEntry,
+    canEdit,
+    modalDraft.value,
+    modalDraft.notes,
+    goalId,
+    onProgressChanged,
+    fetchProgress,
+    pagination.page,
+  ]);
+
   const handleDelete = useCallback(
     async (entryId: string) => {
       if (!canEdit) return;
@@ -273,7 +329,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();
-                    setConfirm({ type: "create" });
+                    void handleCreate();
                   }}
                   noValidate
                 >
@@ -284,11 +340,17 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                       </label>
                       <Input
                         id="progress-value"
+                        type="number"
                         value={createDraft.value}
-                        onChange={(event) => setCreateDraft((prev) => ({ ...prev, value: event.target.value }))}
+                        onChange={(event) => {
+                          setCreateDraft((prev) => ({ ...prev, value: event.target.value }));
+                          setCreateError(null); // Clear error on change
+                        }}
                         inputMode="decimal"
                         aria-invalid={Boolean(createError)}
+                        className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                       />
+                      {createError ? <p className="text-sm text-[#C17A6F] mt-1">{createError}</p> : null}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
@@ -301,7 +363,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                       />
                     </div>
                   </div>
-                  {createError ? <p className="text-sm text-[#C17A6F]">{createError}</p> : null}
                   <div className="flex justify-end gap-2 mt-3">
                     <Button
                       type="button"
@@ -336,29 +397,49 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
           {state.items.map((entry) => {
             const isEditing = editingId === entry.id;
             return (
-              <Card key={entry.id} className="border-[#E5DDD5] bg-white">
+              <Card
+                key={entry.id}
+                className="border-[#E5DDD5] bg-[#FAF8F5] cursor-pointer"
+                onClick={() => setSelectedEntry(entry)}
+              >
                 <CardContent className="flex items-center gap-4 py-3">
                   {isEditing ? (
                     <>
-                      <Input
-                        className="w-16"
-                        value={editingDraft.value}
-                        onChange={(event) => setEditingDraft((prev) => ({ ...prev, value: event.target.value }))}
-                        inputMode="decimal"
-                        aria-invalid={Boolean(createError)}
-                      />
+                      <div className="flex flex-col gap-1">
+                        <Input
+                          className="w-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                          type="number"
+                          value={editingDraft.value}
+                          onChange={(event) => {
+                            setEditingDraft((prev) => ({ ...prev, value: event.target.value }));
+                            setCreateError(null); // Clear error on change
+                          }}
+                          inputMode="decimal"
+                          aria-invalid={Boolean(createError)}
+                        />
+                        {createError && <p className="text-xs text-[#C17A6F]">{createError}</p>}
+                      </div>
                       <Input
                         className="flex-1"
                         value={editingDraft.notes}
                         onChange={(event) => setEditingDraft((prev) => ({ ...prev, notes: event.target.value }))}
                       />
-                      <div className="text-sm text-[#4A3F35]">{new Date(entry.created_at).toLocaleString()}</div>
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={cancelEdit} disabled={Boolean(pendingId)}>
+                        <Button
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cancelEdit();
+                          }}
+                          disabled={Boolean(pendingId)}
+                        >
                           Anuluj
                         </Button>
                         <Button
-                          onClick={() => setConfirm({ type: "update", entryId: entry.id })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirm({ type: "update", entryId: entry.id });
+                          }}
                           disabled={Boolean(pendingId)}
                         >
                           {pendingId === entry.id ? (
@@ -373,31 +454,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                     <>
                       <div className="w-16 font-semibold text-[#4A3F35]">{entry.value}</div>
                       <div className="flex-1 text-sm text-[#8B7E74] truncate">{entry.notes || "Brak notatek"}</div>
-                      <div className="text-sm text-[#4A3F35]">{new Date(entry.created_at).toLocaleString()}</div>
-                      {canEdit ? (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Edytuj"
-                            onClick={() => startEdit(entry)}
-                            disabled={Boolean(pendingId)}
-                            className="hover:bg-[#D4A574]/10 text-[#4A3F35]"
-                          >
-                            <Pencil className="size-4" aria-hidden="true" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Usuń"
-                            onClick={() => setConfirm({ type: "delete", entryId: entry.id })}
-                            disabled={Boolean(pendingId)}
-                            className="hover:bg-[#C17A6F]/10 text-[#C17A6F]"
-                          >
-                            <Trash2 className="size-4" aria-hidden="true" />
-                          </Button>
-                        </div>
-                      ) : null}
                     </>
                   )}
                 </CardContent>
@@ -468,6 +524,95 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
             >
               Potwierdź
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(selectedEntry)} onOpenChange={(open) => !open && setSelectedEntry(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Szczegóły wpisu progresu</DialogTitle>
+            <DialogDescription>Szczegółowe informacje o tym wpisie progresu.</DialogDescription>
+          </DialogHeader>
+          {selectedEntry && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-[#4A3F35]" htmlFor="modal-value">
+                  Wartość
+                </label>
+                <Input
+                  id="modal-value"
+                  type="number"
+                  value={modalDraft.value}
+                  onChange={(event) => {
+                    setModalDraft((prev) => ({ ...prev, value: event.target.value }));
+                    setModalError(null); // Clear error on change
+                  }}
+                  inputMode="decimal"
+                  disabled={!canEdit}
+                  aria-invalid={Boolean(modalError)}
+                  className="rounded-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                />
+                {modalError && <p className="text-sm text-[#C17A6F] mt-1">{modalError}</p>}
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#4A3F35]" htmlFor="modal-notes">
+                  Notatki
+                </label>
+                <Input
+                  id="modal-notes"
+                  value={modalDraft.notes}
+                  onChange={(event) => setModalDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                  disabled={!canEdit}
+                  className="rounded-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#4A3F35]">Data utworzenia</label>
+                <p className="text-sm text-[#8B7E74]">{new Date(selectedEntry.created_at).toLocaleString()}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#4A3F35]">Data aktualizacji</label>
+                <p className="text-sm text-[#8B7E74]">{new Date(selectedEntry.updated_at).toLocaleString()}</p>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            {canEdit && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (selectedEntry) {
+                    void handleDelete(selectedEntry.id);
+                    setSelectedEntry(null);
+                  }
+                }}
+                disabled={Boolean(pendingId)}
+                className="gap-2"
+              >
+                {pendingId === selectedEntry?.id ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Trash2 className="size-4" aria-hidden="true" />
+                )}
+                Usuń
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setSelectedEntry(null)}>
+              Zamknij
+            </Button>
+            {canEdit && (
+              <Button
+                onClick={() => void handleModalSave()}
+                disabled={Boolean(pendingId)}
+                className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
+              >
+                {pendingId === selectedEntry?.id ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : null}
+                Zapisz
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

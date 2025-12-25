@@ -56,7 +56,7 @@ export default function GoalsListPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
-      <header className="sticky top-0 z-20 bg-[#FAF8F5]/95 backdrop-blur-xl border-b border-[#E5DDD5]/60">
+      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
         <AppHeader title="Lista celów" userDisplayName="Użytkowniku" onLogout={handleLogout} />
       </header>
 
@@ -114,7 +114,7 @@ function GoalsListControls({
     <div className="flex flex-col gap-5">
       <div>
         <label className="group relative">
-          <div className="relative">
+          <div className="relative rounded-xl bg-white border border-[#E5DDD5] hover:border-[#D4A574] focus-within:border-[#D4A574] focus-within:ring-2 focus-within:ring-[#D4A574]/20 transition-all duration-200">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#8B7E74]" aria-hidden="true" />
             <Input
               aria-label="Szukaj celu"

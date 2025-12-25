@@ -132,7 +132,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
-      <header className="sticky top-0 z-20 bg-[#FAF8F5]/95 backdrop-blur-xl border-b border-[#E5DDD5]/60">
+      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
         <AppHeader title="Szczegóły celu" userDisplayName="Użytkowniku" onLogout={handleLogout} />
       </header>
 
