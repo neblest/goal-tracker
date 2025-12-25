@@ -13,7 +13,7 @@ Głównym problemem, który rozwiązuje GoalTracker, jest trudność użytkownik
 - F-04: Śledzenie progresu: Użytkownik może dodawać do celu wpisy progresu w formie liczbowej. Edycja istniejących wpisów progresu (wartości liczbowej oraz notatki) jest możliwa wyłącznie w ramach celu o statusie "Aktywny". Do każdego wpisu można opcjonalnie dodać krótką notatkę tekstową.
 - F-05: Notatki refleksyjne: Każdy cel posiada jedno, dedykowane i stale edytowalne pole tekstowe na ogólne notatki i przemyślenia użytkownika.
 - F-06: Statusy celu: Cel może mieć jeden z następujących statusów: "Aktywny", "Zakończony sukcesem", "Zakończony niepowodzeniem", "Porzucony". Cel ze statusem "Porzucony" nie podlega automatycznej zmianie statusu po upływie terminu.
-- F-07: Automatyczne zakończenie celu: Cel zmienia status na "Zakończony sukcesem" po osiągnięciu wartości docelowej. Zmienia status na "Zakończony niepowodzeniem", gdy po upływie terminu (tj. po godzinie 23:59 wskazanego dnia) wartość docelowa nie została osiągnięta. Zmiana statusu następuje automatycznie przy pierwszej wizycie użytkownika w aplikacji po wystąpieniu danego warunku. Wpisy progresu dodane przed 23:59 w dniu terminu są uwzględniane.
+- F-07: Ręczne zakończenie celu sukcesem i automatyczne niepowodzeniem: Użytkownik może ręcznie zakończyć cel sukcesem po osiągnięciu wartości docelowej. Cel zmienia status na "Zakończony niepowodzeniem", gdy po upływie terminu (tj. po godzinie 23:59 wskazanego dnia) wartość docelowa nie została osiągnięta. Zmiana statusu następuje automatycznie przy pierwszej wizycie użytkownika w aplikacji po wystąpieniu danego warunku. Wpisy progresu dodane przed 23:59 w dniu terminu są uwzględniane.
 - F-08: Ręczne zakończenie celu: Użytkownik może w dowolnym momencie "Porzucić" cel. Wymagane będzie wówczas podanie powodu z predefiniowanej listy lub wpisanie własnego powodu.
 - F-09: Podsumowanie AI: Po zakończeniu celu ze statusem "Zakończony sukcesem" lub "Zakończony niepowodzeniem", przy minimum 3 wpisach progresu, system synchronicznie generuje podsumowanie. W przypadku błędu generowania, użytkownik może ponowić próbę do 3 razy. Po 3 nieudanych próbach, użytkownik będzie miał możliwość ręcznego wpisania podsumowania. Podsumowanie analizuje tempo, regularność wpisów i notatki, a użytkownik zawsze ma możliwość pełnej edycji wygenerowanej lub wpisanej ręcznie treści.
 - F-10: Sugestie AI po sukcesie: W przypadku sukcesu, podsumowanie AI zasugeruje kolejny, ambitniejszy cel (np. zwiększając wartość docelową o 20%).
@@ -130,11 +130,11 @@ Poniższe funkcjonalności celowo NIE wchodzą w zakres wersji MVP:
 
 ---
 - ID: US-010
-- Tytuł: Automatyczne zakończenie celu sukcesem
-- Opis: Jako użytkownik, po dodaniu wpisu, który powoduje osiągnięcie lub przekroczenie wartości docelowej, chcę, aby cel automatycznie zmienił status na "Zakończony sukcesem".
+- Tytuł: Ręczne zakończenie celu sukcesem
+- Opis: Jako użytkownik, po osiągnięciu wartości docelowej, chcę mieć możliwość ręcznego zakończenia celu sukcesem.
 - Kryteria akceptacji:
-  - Gdy suma wpisów progresu jest równa lub większa od wartości docelowej, status celu zmienia się na "Zakończony sukcesem".
-  - Wyświetlony zostaje komunikat z gratulacjami.
+  - Gdy suma wpisów progresu jest równa lub większa od wartości docelowej, użytkownik może zakończyć cel sukcesem za pomocą dedykowanego przycisku.
+  - Po zakończeniu, wyświetlony zostaje komunikat z gratulacjami.
   - Blokowana jest możliwość dodawania kolejnych wpisów progresu.
   - Blokowana jest możliwość edycji istniejących wpisów progresu.
 
