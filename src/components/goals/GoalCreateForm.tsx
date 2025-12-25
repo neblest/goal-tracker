@@ -161,7 +161,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
 
         <div className="space-y-2">
           <Label htmlFor={`${baseId}-deadline`} className="text-sm font-medium text-[#4A3F35]">
-            Deadline (RRRR-MM-DD)
+            Termin (RRRR-MM-DD)
           </Label>
           <Input
             id={`${baseId}-deadline`}

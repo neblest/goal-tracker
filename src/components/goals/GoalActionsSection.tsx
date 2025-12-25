@@ -207,7 +207,7 @@ export function GoalActionsSection({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-deadline">
-              Deadline
+              Termin
             </label>
             <Input
               id="restart-deadline"

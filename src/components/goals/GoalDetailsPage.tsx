@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Loader2, TimerReset } from "lucide-react";
 
+import { CongratulationsAnimation } from "@/components/goals/CongratulationsAnimation";
 import GoalAiSummarySection from "@/components/goals/GoalAiSummarySection";
 import GoalDetailsHeader from "@/components/goals/GoalDetailsHeader";
 import GoalHistorySection from "@/components/goals/GoalHistorySection";
@@ -25,6 +26,7 @@ type GoalDetailsState =
 export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   const [state, setState] = useState<GoalDetailsState>({ status: "loading" });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCongratulations, setShowCongratulations] = useState(false);
 
   const handleBack = useCallback(() => {
     window.history.back();
@@ -122,6 +124,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     await apiFetchJson(`/api/goals/${goalId}/complete`, {
       method: "PATCH",
     });
+    setShowCongratulations(true);
     await fetchGoal({ keepData: true });
   }, [fetchGoal, goalId, state]);
 
@@ -156,6 +159,12 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
+      <CongratulationsAnimation
+        isOpen={showCongratulations}
+        onClose={() => setShowCongratulations(false)}
+        userName="Użytkowniku"
+      />
+
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
         <AppHeader title="Szczegóły celu" userDisplayName="Użytkowniku" onLogout={handleLogout} />
       </header>

@@ -114,6 +114,5 @@ export async function listGoalHistory(
     })
   );
 
-
   return { items };
 }

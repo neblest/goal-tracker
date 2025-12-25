@@ -187,7 +187,7 @@ export function GoalMetricsSection({
 
               <div className="space-y-2">
                 <Label htmlFor={`${baseId}-deadline`} className="text-[#4A3F35]">
-                  Deadline
+                  Termin
                 </Label>
                 <Input
                   id={`${baseId}-deadline`}

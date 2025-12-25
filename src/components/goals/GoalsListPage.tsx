@@ -33,7 +33,7 @@ const statusLabels: Record<GoalStatus, string> = {
 
 const sortLabels: Record<"created_at" | "deadline", string> = {
   created_at: "Data utworzenia",
-  deadline: "Deadline",
+  deadline: "Termin",
 };
 
 const orderLabels: Record<"asc" | "desc", string> = {

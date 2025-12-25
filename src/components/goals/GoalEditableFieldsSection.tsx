@@ -129,7 +129,7 @@ export function GoalEditableFieldsSection({
         <div>
           <h3 className="text-base font-semibold text-[#4A3F35]">Edytuj cel</h3>
           <p className="text-sm text-[#8B7E74]">
-            Nazwa, wartość docelowa i deadline są edytowalne do pierwszego wpisu progresu.
+            Nazwa, wartość docelowa i termin są edytowalne do pierwszego wpisu progresu.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export function GoalEditableFieldsSection({
 
           <div className="space-y-2">
             <Label htmlFor={`${baseId}-deadline`} className="text-[#4A3F35]">
-              Deadline
+              Termin
             </Label>
             <Input
               id={`${baseId}-deadline`}
