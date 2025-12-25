@@ -100,6 +100,8 @@ export async function listGoalHistory(
       name: string;
       status: string;
       deadline: string;
+      created_at: string;
+      updated_at: string;
       ai_summary: string | null;
     }) => ({
       id: goal.id,
@@ -107,6 +109,8 @@ export async function listGoalHistory(
       name: goal.name,
       status: goal.status as GoalHistoryItemDto["status"],
       deadline: goal.deadline,
+      created_at: goal.created_at,
+      updated_at: goal.updated_at,
       computed: {
         current_value: String(progressByGoalId.get(goal.id) ?? 0) as DecimalString,
       },

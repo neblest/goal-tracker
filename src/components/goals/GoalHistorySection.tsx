@@ -78,7 +78,13 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <span className="font-semibold text-[#4A3F35] flex-shrink-0 truncate">{item.name}</span>
                 <span className="text-sm text-[#8B7E74] flex-shrink-0">Postęp {item.computed.current_value}</span>
-                <span className="text-sm text-[#8B7E74] flex-shrink-0">Data zakończenia: {item.deadline}</span>
+                <span className="text-sm text-[#8B7E74] flex-shrink-0">
+                  {item.status === "active" ? (
+                    <>Termin: {item.deadline}</>
+                  ) : (
+                    <>Data zakończenia: {item.updated_at ? new Date(item.updated_at).toLocaleDateString("pl-PL") : item.deadline}</>
+                  )}
+                </span>
               </div>
               <Badge variant={isActive ? "default" : "outline"} className="flex-shrink-0 ml-4">
                 {statusLabels[item.status]}

@@ -285,6 +285,8 @@ export interface GoalHistoryItemDto {
   name: DbGoalRow["name"];
   status: GoalStatus;
   deadline: DbGoalRow["deadline"];
+  created_at: DbGoalRow["created_at"];
+  updated_at: DbGoalRow["updated_at"];
   computed: {
     current_value: DecimalString;
   };

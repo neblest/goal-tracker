@@ -111,7 +111,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     async (reason: string) => {
       if (state.status !== "success") return;
       await apiFetchJson(`/api/goals/${goalId}/abandon`, {
-        method: "PATCH",
+        method: "POST",
         body: JSON.stringify({ reason }),
       });
       await fetchGoal({ keepData: true });
@@ -146,6 +146,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       goalStatus: goal.status,
       isLocked: goal.computed.is_locked,
       goalId: goal.id,
+      updatedAt: goal.updated_at,
       onSubmit: handleUpdateGoal,
       onAbandon: handleAbandon,
       onComplete: handleComplete,

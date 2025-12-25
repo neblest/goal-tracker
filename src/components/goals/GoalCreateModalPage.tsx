@@ -19,7 +19,7 @@ export default function GoalCreateModalPage() {
     try {
       const params =
         typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
-      const iv: Partial<GoalCreateFormVm> = {};
+      const iv: InitialValues = {};
       const name = params.get("name");
       const target_value = params.get("target_value");
       const deadline = params.get("deadline");

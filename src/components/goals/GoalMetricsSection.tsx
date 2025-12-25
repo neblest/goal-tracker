@@ -22,6 +22,7 @@ interface GoalMetricsSectionProps {
   goalStatus: GoalStatus;
   isLocked: boolean;
   goalId?: string;
+  updatedAt?: string;
   onSubmit: (command: UpdateGoalCommand) => Promise<void>;
   onAbandon: (reason: string) => Promise<void>;
   onComplete?: () => Promise<void>;
@@ -39,6 +40,7 @@ export function GoalMetricsSection({
   goalStatus,
   isLocked,
   goalId,
+  updatedAt,
   onSubmit,
   onAbandon,
   onComplete,
@@ -228,7 +230,11 @@ export function GoalMetricsSection({
               <h3 className="text-base font-semibold text-[#4A3F35]">{goalName}</h3>
               <div className="flex items-center gap-4">
                 <div className="text-sm text-[#8B7E74]">
-                  Data zakończenia: {new Date(deadline).toLocaleDateString("pl-PL")}
+                  {goalStatus === "active" ? (
+                    <>Termin: {new Date(deadline).toLocaleDateString("pl-PL")}</>
+                  ) : (
+                    <>Data zakończenia: {updatedAt ? new Date(updatedAt).toLocaleDateString("pl-PL") : new Date(deadline).toLocaleDateString("pl-PL")}</>
+                  )}
                 </div>
                 {goalStatus === "active" ? (
                   <>
