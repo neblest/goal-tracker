@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   CalendarClock,
   CheckCircle2,
@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AppHeader } from "@/components/ui/AppHeader";
 import { cn } from "@/lib/utils";
 import type { GoalStatus } from "@/types";
+import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 
 import { useGoalsList } from "../hooks/useGoalsList";
 import type { GoalCardVm } from "../hooks/useGoalsList";
@@ -43,14 +44,21 @@ const orderLabels: Record<"asc" | "desc", string> = {
 
 export default function GoalsListPage() {
   const goals = useGoalsList();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalInitialValues, setModalInitialValues] = useState<any>({});
 
-  const handleLogout = React.useCallback(() => {
+  const handleLogout = useCallback(() => {
     window.location.href = "/login";
   }, []);
 
-  const handleCreateGoal = React.useCallback(() => {
-    window.location.href = "/app/goals/new";
+  const handleCreateGoal = useCallback((initialValues = {}) => {
+    setModalInitialValues(initialValues);
+    setIsCreateModalOpen(true);
   }, []);
+
+  const handleModalSuccess = useCallback(() => {
+    goals.handlers.retry();
+  }, [goals.handlers]);
 
   const showEmpty = !goals.isInitialLoading && goals.items.length === 0 && !goals.error;
 
@@ -75,9 +83,9 @@ export default function GoalsListPage() {
 
         {goals.isInitialLoading ? <LoadingState /> : null}
 
-        {showEmpty ? <EmptyState onCreateGoal={handleCreateGoal} /> : null}
+        {showEmpty ? <EmptyState onCreateGoal={() => handleCreateGoal()} /> : null}
 
-        {goals.items.length > 0 ? <GoalsGrid items={goals.items} /> : null}
+        {goals.items.length > 0 ? <GoalsGrid items={goals.items} onCreateGoal={() => handleCreateGoal()} /> : null}
 
         <LoadMoreSection
           canLoadMore={goals.canLoadMore}
@@ -85,6 +93,13 @@ export default function GoalsListPage() {
           onLoadMore={goals.handlers.loadMore}
         />
       </div>
+
+      <GoalCreateModalPage
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        initialValues={modalInitialValues}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 }
@@ -204,7 +219,7 @@ function ErrorBanner({ error, onRetry }: ErrorBannerProps) {
   );
 }
 
-function GoalsGrid({ items }: { items: GoalCardVm[] }) {
+function GoalsGrid({ items, onCreateGoal }: { items: GoalCardVm[]; onCreateGoal: () => void }) {
   return (
     <section aria-label="Cele" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
@@ -214,7 +229,7 @@ function GoalsGrid({ items }: { items: GoalCardVm[] }) {
         <Card className="h-full rounded-2xl border-dashed border-2 border-[#D4A574]/30 hover:border-[#D4A574]/60 hover:bg-[#D4A574]/5 transition-all duration-200 bg-white">
           <CardContent className="flex items-center justify-center h-full min-h-[200px]">
             <Button
-              onClick={() => (window.location.href = "/app/goals/new")}
+              onClick={onCreateGoal}
               className="aspect-square p-4 text-lg bg-[#D4A574] hover:bg-[#C9965E] text-white"
             >
               +

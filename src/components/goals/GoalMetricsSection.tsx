@@ -26,6 +26,7 @@ interface GoalMetricsSectionProps {
   onSubmit: (command: UpdateGoalCommand) => Promise<void>;
   onAbandon: (reason: string) => Promise<void>;
   onComplete?: () => Promise<void>;
+  onCreateGoal?: (initialValues: any) => void;
 }
 
 export function GoalMetricsSection({
@@ -44,6 +45,7 @@ export function GoalMetricsSection({
   onSubmit,
   onAbandon,
   onComplete,
+  onCreateGoal,
 }: GoalMetricsSectionProps) {
   const baseId = useId();
   const [isEditing, setIsEditing] = useState(false);
@@ -260,16 +262,17 @@ export function GoalMetricsSection({
                   <>
                     <Button
                       onClick={() => {
-                        const params = new URLSearchParams();
-                        if (goalId) params.set("parent_goal_id", goalId);
-                        if (goalName) params.set("name", goalName);
-                        if (targetValue) params.set("target_value", targetValue);
-                        // Do not prefill deadline for continued or retried goals
-                        window.location.href = `/app/goals/new?${params.toString()}`;
+                        if (!onCreateGoal) return;
+                        const initialValues: any = {};
+                        if (goalId) initialValues.parent_goal_id = goalId;
+                        if (goalName) initialValues.name = goalName;
+                        if (targetValue) initialValues.target_value = targetValue;
+                        onCreateGoal(initialValues);
                       }}
                       variant="outline"
                       size="sm"
                       className="text-[#D4A574] hover:text-[#C9965E]"
+                      disabled={!onCreateGoal}
                     >
                       Kontynuuj
                     </Button>
@@ -279,18 +282,17 @@ export function GoalMetricsSection({
                   <>
                     <Button
                       onClick={() => {
-                        const params = new URLSearchParams();
-                        if (goalId) params.set("parent_goal_id", goalId);
-                        if (goalName) params.set("name", goalName);
-                        if (targetValue) params.set("target_value", targetValue);
-                        // Do not prefill deadline for continued or retried goals
-                        // mark that this is a retry
-                        params.set("retry", "1");
-                        window.location.href = `/app/goals/new?${params.toString()}`;
+                        if (!onCreateGoal) return;
+                        const initialValues: any = {};
+                        if (goalId) initialValues.parent_goal_id = goalId;
+                        if (goalName) initialValues.name = goalName;
+                        if (targetValue) initialValues.target_value = targetValue;
+                        onCreateGoal(initialValues);
                       }}
                       variant="outline"
                       size="sm"
                       className="text-[#C17A6F] hover:text-[#A85B50]"
+                      disabled={!onCreateGoal}
                     >
                       Ponów
                     </Button>

@@ -8,6 +8,7 @@ import GoalHistorySection from "@/components/goals/GoalHistorySection";
 import GoalMetricsSection from "@/components/goals/GoalMetricsSection";
 import GoalProgressSection from "@/components/goals/GoalProgressSection";
 import GoalReflectionNotesSection from "@/components/goals/GoalReflectionNotesSection";
+import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
@@ -27,6 +28,8 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   const [state, setState] = useState<GoalDetailsState>({ status: "loading" });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCongratulations, setShowCongratulations] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalInitialValues, setModalInitialValues] = useState<any>({});
 
   const handleBack = useCallback(() => {
     window.history.back();
@@ -34,6 +37,11 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
 
   const handleLogout = useCallback(() => {
     window.location.href = "/login";
+  }, []);
+
+  const handleCreateGoal = useCallback((initialValues: any = {}) => {
+    setModalInitialValues(initialValues);
+    setIsCreateModalOpen(true);
   }, []);
 
   const fetchGoal = useCallback(
@@ -128,6 +136,10 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     await fetchGoal({ keepData: true });
   }, [fetchGoal, goalId, state]);
 
+  const handleModalSuccess = useCallback(async () => {
+    await fetchGoal({ keepData: true });
+  }, [fetchGoal]);
+
   const metrics = useMemo(() => {
     if (state.status !== "success") {
       return null;
@@ -150,8 +162,9 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       onSubmit: handleUpdateGoal,
       onAbandon: handleAbandon,
       onComplete: handleComplete,
+      onCreateGoal: handleCreateGoal,
     };
-  }, [state, handleUpdateGoal, handleAbandon, handleComplete]);
+  }, [state, handleUpdateGoal, handleAbandon, handleComplete, handleCreateGoal]);
 
   const refreshGoal = useCallback(async () => {
     if (state.status !== "success") return;
@@ -213,6 +226,13 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
           </div>
         ) : null}
       </div>
+
+      <GoalCreateModalPage
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        initialValues={modalInitialValues}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 }
