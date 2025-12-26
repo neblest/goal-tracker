@@ -18,8 +18,8 @@ Głównym problemem, który rozwiązuje GoalTracker, jest trudność użytkownik
 - F-09: Podsumowanie AI: Po zakończeniu celu ze statusem "Zakończony sukcesem" lub "Zakończony niepowodzeniem", przy minimum 3 wpisach progresu, system synchronicznie generuje podsumowanie. W przypadku błędu generowania, użytkownik może ponowić próbę do 3 razy. Po 3 nieudanych próbach, użytkownik będzie miał możliwość ręcznego wpisania podsumowania. Podsumowanie analizuje tempo, regularność wpisów i notatki, a użytkownik zawsze ma możliwość pełnej edycji wygenerowanej lub wpisanej ręcznie treści.
 - F-10: Sugestie AI po sukcesie: W przypadku sukcesu, podsumowanie AI zasugeruje kolejny, ambitniejszy cel (np. zwiększając wartość docelową o 20%).
 - F-11: Sugestie AI po niepowodzeniu: W przypadku niepowodzenia, podsumowanie AI może zasugerować korektę celu, proponując konkretne zmiany (np. zmniejszenie wartości docelowej lub wydłużenie terminu).
-- F-12: Ponawianie celu: Użytkownik może podjąć ponownie cel zakończony niepowodzeniem lub porzucony. Przy ponowieniu, formularz tworzenia celu jest wstępnie wypełniony, a użytkownik może edytować wartość docelową i termin.
-- F-13: Historia iteracji: Aplikacja przechowuje historię wszystkich podejść (iteracji) do danego celu. Użytkownik ma dostęp do poprzednich prób i ich podsumowań AI z widoku aktywnego celu.
+- F-12: Ponawianie celu: Użytkownik może podjąć ponownie cel zakończony niepowodzeniem lub porzucony, ale tylko jeśli jest to najmłodszy cel w łańcuchu iteracji (cel z najnowszą datą utworzenia w danej rodzinie celów). Przy ponowieniu, formularz tworzenia celu jest wstępnie wypełniony, a użytkownik może edytować wartość docelową i termin. W danym łańcuchu iteracji może istnieć tylko jeden aktywny cel jednocześnie.
+- F-13: Historia iteracji: Aplikacja przechowuje historię wszystkich podejść (iteracji) do danego celu. Użytkownik ma dostęp do poprzednich prób i ich podsumowań AI z widoku aktywnego celu. Łańcuch iteracji to zbiór celów połączonych relacją parent_goal_id, gdzie każdy cel może mieć tylko jednego rodzica i dowolną liczbę potomków.
 - F-14: Wizualizacja postępu: Interfejs celu będzie wyraźnie prezentował pasek postępu (wizualizujący stosunek aktualnej wartości do docelowej) oraz czas pozostały do deadline'u.
 - F-15: Onboarding: Na widoku startowym dla niezalogowanych użytkowników znajdą się trzy proste, statyczne infografiki wyjaśniające kluczowe kroki korzystania z aplikacji.
 - F-16: Edycja wpisów progresu: Użytkownik może edytować istniejące wpisy progresu (wartość liczbową i treść notatki) wyłącznie w ramach aktywnego celu. Edycja jest niemożliwa po zakończeniu celu (niezależnie od statusu).
@@ -199,7 +199,8 @@ Poniższe funkcjonalności celowo NIE wchodzą w zakres wersji MVP:
 - Tytuł: Ponawianie celu po niepowodzeniu
 - Opis: Jako użytkownik, po nieudanym zakończeniu celu, chcę mieć możliwość jego ponowienia, z opcją dostosowania parametrów na podstawie sugestii AI.
 - Kryteria akceptacji:
-  - W widoku celu zakończonego niepowodzeniem lub porzuconego znajduje się przycisk "Spróbuj ponownie".
+  - W widoku celu zakończonego niepowodzeniem lub porzuconego znajduje się przycisk "Spróbuj ponownie" tylko wtedy, gdy cel jest najmłodszy w łańcuchu iteracji (ma najnowszą datę utworzenia).
+  - Jeśli w łańcuchu iteracji istnieje już aktywny cel, ponowienie celu jest niemożliwe (walidacja na poziomie backendu).
   - Podsumowanie AI może zawierać konkretne sugestie, np. "Spróbuj osiągnąć 70 zamiast 100 w 30 dni lub oryginalne 100, ale w 45 dni".
   - Po kliknięciu przycisku "Spróbuj ponownie" jestem przenoszony do formularza tworzenia celu.
   - Formularz jest wstępnie wypełniony danymi z poprzedniej iteracji (nazwa, wartość docelowa, termin).
@@ -212,7 +213,8 @@ Poniższe funkcjonalności celowo NIE wchodzą w zakres wersji MVP:
 - Opis: Jako użytkownik, po pomyślnym osiągnięciu celu, chcę otrzymać od AI sugestię kolejnego, ambitniejszego celu i łatwo go utworzyć.
 - Kryteria akceptacji:
   - W widoku celu zakończonego sukcesem, podsumowanie AI zawiera sugestię następnego celu (np. "Świetna robota! Może teraz spróbujesz osiągnąć 120 km?").
-  - Obok sugestii znajduje się przycisk "Akceptuj i kontynuuj" lub podobny.
+  - Obok sugestii znajduje się przycisk "Akceptuj i kontynuuj" lub podobny, ale tylko wtedy gdy cel jest najmłodszy w łańcuchu iteracji.
+  - Jeśli w łańcuchu iteracji istnieje już aktywny cel, kontynuacja celu jest niemożliwa (walidacja na poziomie backendu).
   - Po kliknięciu przycisku jestem przenoszony do formularza tworzenia celu z danymi wypełnionymi zgodnie z sugestią AI.
   - Mogę zmodyfikować sugerowane parametry przed utworzeniem nowej iteracji.
 
@@ -222,9 +224,10 @@ Poniższe funkcjonalności celowo NIE wchodzą w zakres wersji MVP:
 - Opis: Jako użytkownik realizujący kolejną iterację celu, chcę mieć łatwy dostęp do historii poprzednich prób, aby móc analizować wcześniejsze doświadczenia.
 - Kryteria akceptacji:
   - W widoku szczegółowym celu znajduje się zakładka lub sekcja "Historia".
-  - W tej sekcji widoczna jest lista poprzednich iteracji celu.
-  - Każdy element na liście pokazuje datę zakończenia, finalny status (sukces/niepowodzenie) i osiągnięty wynik.
+  - W tej sekcji widoczna jest lista poprzednich iteracji celu (łańcuch iteracji zdefiniowany przez relację parent_goal_id).
+  - Każdy element na liście pokazuje datę zakończenia, finalny status (sukces/niepowodzenie/aktywny) i osiągnięty wynik.
   - Kliknięcie na historyczną iterację pozwala zobaczyć jej szczegóły, w tym pełne podsumowanie AI.
+  - W danym łańcuchu iteracji może istnieć maksymalnie jeden cel aktywny jednocześnie.
 
 ---
 - ID: US-019

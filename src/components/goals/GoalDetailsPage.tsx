@@ -30,6 +30,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [modalInitialValues, setModalInitialValues] = useState<any>({});
+  const [isYoungestInChain, setIsYoungestInChain] = useState(true);
 
   const handleBack = useCallback(() => {
     window.history.back();
@@ -86,8 +87,28 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       }
 
       void fetchGoal();
+
+      // Check if this goal is the youngest in its iteration chain AND no active goal exists
+      try {
+        const historyResponse = await apiFetchJson<GetGoalHistoryResponseDto>(`/api/goals/${goalId}/history`);
+        const items = historyResponse.data.items;
+        if (items.length > 0) {
+          // Check if any goal in the chain is active
+          const hasActiveGoal = items.some((item) => item.status === "active");
+          // Items are sorted by created_at DESC (newest first), so items[0] is the youngest
+          const youngestId = items[0].id;
+          const isYoungest = youngestId === goalId;
+          // Show buttons only if this is the youngest AND no active goal exists in chain
+          setIsYoungestInChain(isYoungest && !hasActiveGoal);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("Failed to fetch goal history for youngest check", e);
+        // Default to true to avoid hiding buttons if fetch fails
+        setIsYoungestInChain(true);
+      }
     })();
-  }, [fetchGoal]);
+  }, [fetchGoal, goalId]);
 
   const handleUpdateGoal = useCallback(
     async (command: UpdateGoalCommand) => {
@@ -159,12 +180,13 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       isLocked: goal.computed.is_locked,
       goalId: goal.id,
       updatedAt: goal.updated_at,
+      isYoungestInChain,
       onSubmit: handleUpdateGoal,
       onAbandon: handleAbandon,
       onComplete: handleComplete,
       onCreateGoal: handleCreateGoal,
     };
-  }, [state, handleUpdateGoal, handleAbandon, handleComplete, handleCreateGoal]);
+  }, [state, isYoungestInChain, handleUpdateGoal, handleAbandon, handleComplete, handleCreateGoal]);
 
   const refreshGoal = useCallback(async () => {
     if (state.status !== "success") return;

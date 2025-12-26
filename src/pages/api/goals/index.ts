@@ -8,6 +8,7 @@ import type {
   GetGoalsResponseDto,
 } from "../../../types";
 import { assertParentGoalAccessible, createGoal, listGoals } from "../../../lib/services/goals.service";
+import { validateIterationChainForNewGoal } from "../../../lib/services/goal-lifecycle.service";
 
 export const prerender = false;
 
@@ -343,6 +344,8 @@ export async function POST(context: APIContext) {
     if (command.parent_goal_id) {
       try {
         await assertParentGoalAccessible(supabase, user.id, command.parent_goal_id);
+        // Validate iteration chain constraints
+        await validateIterationChainForNewGoal(supabase, command.parent_goal_id);
       } catch (error) {
         if (error instanceof Error) {
           if (error.message === "parent_goal_not_found") {
@@ -355,6 +358,34 @@ export async function POST(context: APIContext) {
               } satisfies ApiErrorDto<"parent_goal_not_found">),
               {
                 status: 404,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+          if (error.message === "active_goal_exists") {
+            return new Response(
+              JSON.stringify({
+                error: {
+                  code: "active_goal_exists",
+                  message: "An active goal already exists in this iteration chain",
+                },
+              } satisfies ApiErrorDto<"active_goal_exists">),
+              {
+                status: 409,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+          if (error.message === "goal_not_youngest") {
+            return new Response(
+              JSON.stringify({
+                error: {
+                  code: "goal_not_youngest",
+                  message: "Goal can only be continued from the most recent iteration",
+                },
+              } satisfies ApiErrorDto<"goal_not_youngest">),
+              {
+                status: 409,
                 headers: { "Content-Type": "application/json" },
               }
             );

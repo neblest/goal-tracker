@@ -154,3 +154,8 @@ USING ((
 -   **Automatic Status Change (F-07)**: The logic for automatically changing a goal's status upon deadline expiry will be triggered by application logic during a user's visit, rather than a database cron job, simplifying the MVP infrastructure.
 -   **Goal Name Uniqueness (F-02)**: A `UNIQUE` constraint on the goal name is intentionally omitted to allow users to easily retry goals with the same name across different iterations.
 -   **Triggers for `updated_at`**: Standard triggers will be set up to automatically update the `updated_at` column on any row modification for all tables.
+-   **Iteration Chain Constraints (F-12, F-13)**: Business rules for goal iterations are enforced in application logic:
+    -   Within a single iteration chain (goals linked by `parent_goal_id`), only one goal can have `status = 'active'` at any time.
+    -   Retry/continue operations can only be performed on the youngest goal (most recent `created_at`) in the iteration chain.
+    -   These constraints are validated in the `retryGoal` and `continueGoal` service functions before creating new goal iterations.
+    -   An iteration chain is defined as all goals connected through `parent_goal_id` relationships, retrievable via the `get_goal_history` database function.

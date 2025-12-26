@@ -25,6 +25,54 @@ interface SyncStatusesResult {
 }
 
 /**
+ * Validates iteration chain constraints before creating a new goal iteration
+ *
+ * Business rules:
+ * - Only one active goal can exist in an iteration chain at a time
+ * - Retry/continue can only be performed from the youngest goal (most recent created_at)
+ *
+ * @param supabase - Supabase client instance
+ * @param goalId - Goal ID to validate
+ * @returns void if validation passes
+ * @throws Error with specific code:
+ *   - "active_goal_exists": An active goal already exists in the iteration chain (409)
+ *   - "goal_not_youngest": The goal is not the youngest in the iteration chain (409)
+ *   - "database_error": Database operation failed (500)
+ */
+export async function validateIterationChainForNewGoal(supabase: SupabaseClient, goalId: string): Promise<void> {
+  // Step 1: Get all goals in the iteration chain using the RPC function
+  const { data: historyData, error: historyError } = await supabase.rpc("get_goal_history", {
+    p_goal_id: goalId,
+  });
+
+  if (historyError) {
+    // eslint-disable-next-line no-console
+    console.error("Error fetching goal history for validation:", historyError);
+    throw new Error("database_error");
+  }
+
+  if (!historyData || historyData.length === 0) {
+    // If no history found, validation passes (shouldn't happen for existing goals)
+    return;
+  }
+
+  // Step 2: Check if any goal in the chain is active
+  const hasActiveGoal = historyData.some((goal: { status: GoalStatus }) => goal.status === "active");
+
+  if (hasActiveGoal) {
+    throw new Error("active_goal_exists");
+  }
+
+  // Step 3: Check if the current goal is the youngest (most recent created_at)
+  // History is sorted by created_at ascending, so the last item is the youngest
+  const youngestGoal = historyData[historyData.length - 1];
+
+  if (youngestGoal.id !== goalId) {
+    throw new Error("goal_not_youngest");
+  }
+}
+
+/**
  * Abandons an active goal with a reason
  *
  * Business rules:
@@ -102,6 +150,8 @@ export async function abandonGoal(
  * Business rules:
  * - Source goal must exist and belong to the user
  * - Source goal must be in 'completed_success' status
+ * - Source goal must be the youngest in its iteration chain
+ * - No active goal can exist in the iteration chain
  * - Creates new goal with status 'active' and parent_goal_id set to source goal
  * - Name, target_value, and deadline are taken from the command
  *
@@ -113,6 +163,8 @@ export async function abandonGoal(
  * @throws Error with specific code for proper HTTP error mapping:
  *   - "goal_not_found": Goal doesn't exist or user lacks access (404)
  *   - "goal_not_continuable": Goal is not in completed_success status (409)
+ *   - "active_goal_exists": An active goal already exists in the iteration chain (409)
+ *   - "goal_not_youngest": Goal is not the youngest in the iteration chain (409)
  *   - "database_error": Database operation failed (500)
  */
 export async function continueGoal(
@@ -144,7 +196,10 @@ export async function continueGoal(
     throw new Error("goal_not_continuable");
   }
 
-  // Step 3: Create new goal as continuation
+  // Step 3: Validate iteration chain constraints
+  await validateIterationChainForNewGoal(supabase, goalId);
+
+  // Step 4: Create new goal as continuation
   const { data: newGoal, error: insertError } = await supabase
     .from("goals")
     .insert({
@@ -177,6 +232,8 @@ export async function continueGoal(
  * Business rules:
  * - Source goal must exist and belong to the user
  * - Source goal must be in 'completed_failure' or 'abandoned' status
+ * - Source goal must be the youngest in its iteration chain
+ * - No active goal can exist in the iteration chain
  * - Creates new goal with status 'active' and parent_goal_id set to source goal
  * - Name is copied from source goal by default, unless overridden in command
  * - target_value and deadline are taken from the command
@@ -189,6 +246,8 @@ export async function continueGoal(
  * @throws Error with specific code for proper HTTP error mapping:
  *   - "goal_not_found": Goal doesn't exist or user lacks access (404)
  *   - "goal_not_retryable": Goal is not in completed_failure or abandoned status (409)
+ *   - "active_goal_exists": An active goal already exists in the iteration chain (409)
+ *   - "goal_not_youngest": Goal is not the youngest in the iteration chain (409)
  *   - "database_error": Database operation failed (500)
  */
 export async function retryGoal(
@@ -220,10 +279,13 @@ export async function retryGoal(
     throw new Error("goal_not_retryable");
   }
 
-  // Step 3: Determine the name for the new goal (use command.name if provided, otherwise copy from source)
+  // Step 3: Validate iteration chain constraints
+  await validateIterationChainForNewGoal(supabase, goalId);
+
+  // Step 4: Determine the name for the new goal (use command.name if provided, otherwise copy from source)
   const newName = command.name ?? sourceGoal.name;
 
-  // Step 4: Create new goal as retry
+  // Step 5: Create new goal as retry
   const { data: newGoal, error: insertError } = await supabase
     .from("goals")
     .insert({

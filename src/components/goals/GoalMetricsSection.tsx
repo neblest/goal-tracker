@@ -23,6 +23,7 @@ interface GoalMetricsSectionProps {
   isLocked: boolean;
   goalId?: string;
   updatedAt?: string;
+  isYoungestInChain?: boolean;
   onSubmit: (command: UpdateGoalCommand) => Promise<void>;
   onAbandon: (reason: string) => Promise<void>;
   onComplete?: () => Promise<void>;
@@ -42,6 +43,7 @@ export function GoalMetricsSection({
   isLocked,
   goalId,
   updatedAt,
+  isYoungestInChain = true,
   onSubmit,
   onAbandon,
   onComplete,
@@ -258,7 +260,7 @@ export function GoalMetricsSection({
                       Porzuć
                     </Button>
                   </>
-                ) : goalStatus === "completed_success" ? (
+                ) : goalStatus === "completed_success" && isYoungestInChain ? (
                   <>
                     <Button
                       onClick={() => {
@@ -277,8 +279,8 @@ export function GoalMetricsSection({
                       Kontynuuj
                     </Button>
                   </>
-                ) : goalStatus === "completed_failure" ? (
-                  // For failed goals allow retry by creating a linked goal
+                ) : (goalStatus === "completed_failure" || goalStatus === "abandoned") && isYoungestInChain ? (
+                  // For failed/abandoned goals allow retry by creating a linked goal
                   <>
                     <Button
                       onClick={() => {

@@ -241,6 +241,36 @@ export async function POST(context: APIContext) {
         );
       }
 
+      if (error.message === "active_goal_exists") {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: "active_goal_exists",
+              message: "An active goal already exists in this iteration chain",
+            },
+          } satisfies ApiErrorDto<"active_goal_exists">),
+          {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (error.message === "goal_not_youngest") {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: "goal_not_youngest",
+              message: "Goal can only be continued from the most recent iteration",
+            },
+          } satisfies ApiErrorDto<"goal_not_youngest">),
+          {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
       if (error.message === "database_error") {
         return new Response(
           JSON.stringify({

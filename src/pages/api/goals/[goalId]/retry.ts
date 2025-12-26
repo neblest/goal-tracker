@@ -211,6 +211,34 @@ export async function POST(context: APIContext) {
             }
           );
 
+        case "active_goal_exists":
+          return new Response(
+            JSON.stringify({
+              error: {
+                code: "active_goal_exists",
+                message: "An active goal already exists in this iteration chain",
+              },
+            } satisfies ApiErrorDto<"active_goal_exists">),
+            {
+              status: 409,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+
+        case "goal_not_youngest":
+          return new Response(
+            JSON.stringify({
+              error: {
+                code: "goal_not_youngest",
+                message: "Goal can only be retried from the most recent iteration",
+              },
+            } satisfies ApiErrorDto<"goal_not_youngest">),
+            {
+              status: 409,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+
         case "database_error":
         default:
           // eslint-disable-next-line no-console
