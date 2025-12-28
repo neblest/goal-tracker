@@ -106,7 +106,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
   const supabase = context.locals.supabase;
 
   // Dev mode: use DEV_USER_ID if available
-  const devUserId = "44d2849d-867f-4c21-b386-d017b85896c0";
+  const devUserId = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
   const userId = { id: devUserId };
 
   //   if (devUserId) {
@@ -248,7 +248,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
   const supabase = context.locals.supabase;
 
   // Dev mode: use DEV_USER_ID if available
-  const devUserId = "44d2849d-867f-4c21-b386-d017b85896c0";
+  const devUserId = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
   const userId = { id: devUserId };
 
   //   if (devUserId) {

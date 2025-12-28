@@ -143,7 +143,7 @@ export async function GET(context: APIContext): Promise<Response> {
   // const userId = userData.user.id;
 
   // DEV MODE: hardcoded user ID (to be removed before production)
-  const DEV_USER_ID = "44d2849d-867f-4c21-b386-d017b85896c0";
+  const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
   const userId = DEV_USER_ID;
 
   // =========================================================================
@@ -312,7 +312,7 @@ export async function POST(context: APIContext): Promise<Response> {
   // const userId = userData.user.id;
 
   // DEV MODE: hardcoded user ID (to be removed before production)
-  const DEV_USER_ID = "44d2849d-867f-4c21-b386-d017b85896c0";
+  const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
   const userId = DEV_USER_ID;
 
   // =========================================================================

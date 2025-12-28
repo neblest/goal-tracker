@@ -144,6 +144,20 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
         body: JSON.stringify({ reason }),
       });
       await fetchGoal({ keepData: true });
+
+      // Recalculate isYoungestInChain after abandoning the goal
+      try {
+        const historyResponse = await apiFetchJson<GetGoalHistoryResponseDto>(`/api/goals/${goalId}/history`);
+        const items = historyResponse.data.items;
+        if (items.length > 0) {
+          const hasActiveGoal = items.some((item) => item.status === "active");
+          const youngestId = items[0].id;
+          const isYoungest = youngestId === goalId;
+          setIsYoungestInChain(isYoungest && !hasActiveGoal);
+        }
+      } catch (e) {
+        console.warn("Failed to recalculate isYoungestInChain after abandoning", e);
+      }
     },
     [fetchGoal, goalId, state]
   );

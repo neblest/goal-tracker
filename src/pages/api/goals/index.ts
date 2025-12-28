@@ -131,7 +131,7 @@ export async function GET(context: APIContext) {
     const supabase = context.locals.supabase;
 
     // TODO: Remove hardcoded user ID before production deployment
-    const DEV_USER_ID = "44d2849d-867f-4c21-b386-d017b85896c0";
+    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
     const user = { id: DEV_USER_ID };
 
     /*
@@ -259,7 +259,7 @@ export async function POST(context: APIContext) {
 
     // TODO: Remove hardcoded user ID before production deployment
     // For development, use a default user ID (create this user in Supabase first)
-    const DEV_USER_ID = "44d2849d-867f-4c21-b386-d017b85896c0";
+    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
     const user = { id: DEV_USER_ID };
 
     /* 
