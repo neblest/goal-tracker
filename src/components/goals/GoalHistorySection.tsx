@@ -12,8 +12,8 @@ interface GoalHistorySectionProps {
 
 const statusLabels: Record<GoalStatus, string> = {
   active: "Aktywne",
-  completed_success: "Zakończone (sukces)",
-  completed_failure: "Zakończone (porażka)",
+  completed_success: "Zakończone (powodzenie)",
+  completed_failure: "Zakończone (niepowodzenie)",
   abandoned: "Porzucone",
 };
 
@@ -53,7 +53,7 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
       <header className="flex items-center justify-between pb-4">
         <div>
           <h3 className="text-base font-semibold text-[#4A3F35]">Historia iteracji</h3>
-          <p className="text-sm text-[#8B7E74]">Łańcuch powiązanych celów tworzony przy retry/continue.</p>
+          <p className="text-sm text-[#8B7E74]">Łańcuch powiązanych celów.</p>
         </div>
       </header>
 
@@ -82,7 +82,10 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
                   {item.status === "active" ? (
                     <>Termin: {item.deadline}</>
                   ) : (
-                    <>Data zakończenia: {item.updated_at ? new Date(item.updated_at).toLocaleDateString("pl-PL") : item.deadline}</>
+                    <>
+                      Data zakończenia:{" "}
+                      {item.updated_at ? new Date(item.updated_at).toLocaleDateString("pl-PL") : item.deadline}
+                    </>
                   )}
                 </span>
               </div>

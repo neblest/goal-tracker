@@ -12,7 +12,7 @@ import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
-import type { GetGoalResponseDto, GoalDetailsDto, GoalStatus, UpdateGoalCommand, UpdateGoalResponseDto } from "@/types";
+import type { GetGoalHistoryResponseDto, GetGoalResponseDto, GoalDetailsDto, GoalStatus, UpdateGoalCommand, UpdateGoalResponseDto } from "@/types";
 
 interface GoalDetailsPageProps {
   goalId: string;
@@ -155,6 +155,20 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     });
     setShowCongratulations(true);
     await fetchGoal({ keepData: true });
+
+    // Recalculate isYoungestInChain after completing the goal
+    try {
+      const historyResponse = await apiFetchJson<GetGoalHistoryResponseDto>(`/api/goals/${goalId}/history`);
+      const items = historyResponse.data.items;
+      if (items.length > 0) {
+        const hasActiveGoal = items.some((item) => item.status === "active");
+        const youngestId = items[0].id;
+        const isYoungest = youngestId === goalId;
+        setIsYoungestInChain(isYoungest && !hasActiveGoal);
+      }
+    } catch (e) {
+      console.warn("Failed to recalculate isYoungestInChain after completion", e);
+    }
   }, [fetchGoal, goalId, state]);
 
   const handleModalSuccess = useCallback(async () => {
@@ -236,7 +250,11 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <GoalProgressSection goalId={goalId} goalStatus={state.goal.status} onProgressChanged={refreshGoal} />
-              <GoalHistorySection goalId={goalId} activeGoalId={state.goal.id} />
+              <GoalHistorySection
+                key={`${state.goal.status}-${state.goal.updated_at}`}
+                goalId={goalId}
+                activeGoalId={state.goal.id}
+              />
             </div>
             <GoalAiSummarySection
               status={state.goal.status}

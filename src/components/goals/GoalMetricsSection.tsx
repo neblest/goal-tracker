@@ -237,7 +237,12 @@ export function GoalMetricsSection({
                   {goalStatus === "active" ? (
                     <>Termin: {new Date(deadline).toLocaleDateString("pl-PL")}</>
                   ) : (
-                    <>Data zakończenia: {updatedAt ? new Date(updatedAt).toLocaleDateString("pl-PL") : new Date(deadline).toLocaleDateString("pl-PL")}</>
+                    <>
+                      Data zakończenia:{" "}
+                      {updatedAt
+                        ? new Date(updatedAt).toLocaleDateString("pl-PL")
+                        : new Date(deadline).toLocaleDateString("pl-PL")}
+                    </>
                   )}
                 </div>
                 {goalStatus === "active" ? (
@@ -332,6 +337,13 @@ export function GoalMetricsSection({
                 ) : (
                   <>
                     <svg className="size-36" viewBox="0 0 160 160" role="img" aria-label={`Postęp ${clampedPercent}%`}>
+                      <defs>
+                        <linearGradient id={`progressGradient-${baseId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#7B5E3A" />
+                          <stop offset="50%" stopColor="#A0784E" />
+                          <stop offset="100%" stopColor="#E8C9A0" />
+                        </linearGradient>
+                      </defs>
                       <circle
                         className="text-[#E5DDD5]"
                         stroke="currentColor"
@@ -343,8 +355,7 @@ export function GoalMetricsSection({
                         opacity={0.5}
                       />
                       <circle
-                        className="text-[#D4A574]"
-                        stroke="currentColor"
+                        stroke={`url(#progressGradient-${baseId})`}
                         strokeWidth="12"
                         strokeLinecap="round"
                         fill="transparent"
@@ -384,14 +395,14 @@ export function GoalMetricsSection({
                     }`}
                   >
                     {goalStatus === "completed_success"
-                      ? "Ukończony pomyślnie"
+                      ? "Ukończono powodzeniem"
                       : goalStatus === "completed_failure"
-                        ? "Ukończony niepowodzeniem"
-                        : "Porzucony"}
+                        ? "Ukończono niepowodzeniem"
+                        : "Porzucono"}
                   </div>
                 ) : null}
                 <p className="text-sm text-[#8B7E74]">
-                  Postęp jest obliczany na podstawie sumy wpisów progresu względem wartości docelowej.
+                  Postęp jest obliczany na podstawie sumy wpisów postępu względem wartości docelowej.
                 </p>
               </div>
             </div>

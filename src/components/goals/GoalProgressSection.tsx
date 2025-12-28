@@ -52,7 +52,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<DraftState>({ value: "", notes: "" });
   const [confirm, setConfirm] = useState<{ type: "create" | "update" | "delete"; entryId?: string } | null>(null);
-  const [isFormExpanded, setIsFormExpanded] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<GoalProgressEntryDto | null>(null);
   const [modalDraft, setModalDraft] = useState<DraftState>({ value: "", notes: "" });
   const [modalError, setModalError] = useState<string | null>(null);
@@ -126,7 +126,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         body: JSON.stringify(command),
       });
       setCreateDraft({ value: "", notes: "" });
-      setIsFormExpanded(false);
+      setIsCreateModalOpen(false);
       if (onProgressChanged) {
         onProgressChanged();
       }
@@ -266,12 +266,12 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       <header className="flex items-center justify-between pb-4">
         <div>
           <h3 className="text-base font-semibold text-[#4A3F35]">Postęp</h3>
-          <p className="text-sm text-[#8B7E74]">Dodawaj i edytuj wpisy progresu. Dostępne tylko dla aktywnych celów.</p>
+          <p className="text-sm text-[#8B7E74]">Dodawaj i edytuj wpisy postępu. Dostępne tylko dla aktywnych celów.</p>
         </div>
         <div className="flex items-center gap-2">
           {canEdit ? (
             <Button
-              onClick={() => setIsFormExpanded(true)}
+              onClick={() => setIsCreateModalOpen(true)}
               disabled={Boolean(pendingId)}
               className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
             >
@@ -303,77 +303,6 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
 
       <div className="max-h-55 overflow-y-auto">
         <div className="grid gap-3">
-          {isFormExpanded && !state.loading && canEdit ? (
-            <Card className="border-[#E5DDD5] bg-[#FAF8F5]/50">
-              <CardContent className="p-4">
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void handleCreate();
-                  }}
-                  noValidate
-                >
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-value">
-                        Wartość
-                      </label>
-                      <Input
-                        id="progress-value"
-                        type="number"
-                        value={createDraft.value}
-                        onChange={(event) => {
-                          setCreateDraft((prev) => ({ ...prev, value: event.target.value }));
-                          setCreateError(null); // Clear error on change
-                        }}
-                        inputMode="decimal"
-                        aria-invalid={Boolean(createError)}
-                        className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                      />
-                      {createError ? <p className="text-sm text-[#C17A6F] mt-1">{createError}</p> : null}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#4A3F35]" htmlFor="progress-notes">
-                        Notatki (opcjonalnie)
-                      </label>
-                      <Input
-                        id="progress-notes"
-                        value={createDraft.notes}
-                        onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2 mt-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setIsFormExpanded(false);
-                        setCreateDraft({ value: "", notes: "" });
-                        setCreateError(null);
-                      }}
-                      disabled={Boolean(pendingId)}
-                    >
-                      Anuluj
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={!canSubmit}
-                      className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
-                    >
-                      {pendingId === "new" ? (
-                        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                      ) : (
-                        <Plus className="size-4" aria-hidden="true" />
-                      )}
-                      Zapisz Postęp
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          ) : null}
-
           {state.items.map((entry) => {
             const isEditing = editingId === entry.id;
             return (
@@ -594,6 +523,85 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               </Button>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isCreateModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsCreateModalOpen(false);
+            setCreateDraft({ value: "", notes: "" });
+            setCreateError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dodaj wpis progresu</DialogTitle>
+            <DialogDescription>Dodaj nowy wpis postępu dla tego celu.</DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleCreate();
+            }}
+            noValidate
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-[#4A3F35]" htmlFor="create-value">
+                  Wartość
+                </label>
+                <Input
+                  id="create-value"
+                  type="number"
+                  value={createDraft.value}
+                  onChange={(event) => {
+                    setCreateDraft((prev) => ({ ...prev, value: event.target.value }));
+                    setCreateError(null);
+                  }}
+                  inputMode="decimal"
+                  aria-invalid={Boolean(createError)}
+                  className="rounded-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                />
+                {createError && <p className="text-sm text-[#C17A6F] mt-1">{createError}</p>}
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#4A3F35]" htmlFor="create-notes">
+                  Notatki (opcjonalnie)
+                </label>
+                <Input
+                  id="create-notes"
+                  value={createDraft.notes}
+                  onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                  className="rounded-sm"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setCreateDraft({ value: "", notes: "" });
+                  setCreateError(null);
+                }}
+                disabled={Boolean(pendingId)}
+              >
+                Anuluj
+              </Button>
+              <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
+                {pendingId === "new" ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Plus className="size-4" aria-hidden="true" />
+                )}
+                Zapisz Postęp
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </section>
