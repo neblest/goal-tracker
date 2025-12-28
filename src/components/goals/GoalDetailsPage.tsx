@@ -12,7 +12,14 @@ import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
-import type { GetGoalHistoryResponseDto, GetGoalResponseDto, GoalDetailsDto, GoalStatus, UpdateGoalCommand, UpdateGoalResponseDto } from "@/types";
+import type {
+  GetGoalHistoryResponseDto,
+  GetGoalResponseDto,
+  GoalDetailsDto,
+  GoalStatus,
+  UpdateGoalCommand,
+  UpdateGoalResponseDto,
+} from "@/types";
 
 interface GoalDetailsPageProps {
   goalId: string;

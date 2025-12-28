@@ -1,0 +1,53 @@
+---
+import OnboardingCard from "./OnboardingCard.astro";
+
+const steps = [
+  {
+    step: 1,
+    icon: "target",
+    title: "Wyznacz cel",
+    description:
+      "Określ swoje cele w prosty i mierzalny sposób. Ustaw wartość docelową i termin, który będzie Cię motywował do działania.",
+  },
+  {
+    step: 2,
+    icon: "trendingUp",
+    title: "Śledź postępy",
+    description:
+      "Regularnie rejestruj swoje osiągnięcia. Zobacz w czasie rzeczywistym, jak zbliżasz się do swojego celu i świętuj każdy postęp.",
+  },
+  {
+    step: 3,
+    icon: "sparkles",
+    title: "Ucz się z AI",
+    description:
+      "Po zakończeniu celu otrzymaj inteligentne podsumowanie i rekomendacje. Dowiedz się, co zadziałało i jak osiągnąć więcej w przyszłości.",
+  },
+];
+---
+
+<section class="py-8 px-4">
+  <div class="max-w-6xl mx-auto">
+    <!-- Section header -->
+    <div class="text-center mb-8">
+      <h2 class="text-2xl sm:text-3xl font-bold text-[#4A3F35] mb-3">Jak to działa?</h2>
+      <p class="text-base sm:text-lg text-[#8B7E74] max-w-2xl mx-auto">
+        Trzy proste kroki do osiągania celów i rozwoju osobistego
+      </p>
+    </div>
+
+    <!-- Steps grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+      {
+        steps.map((stepData) => (
+          <OnboardingCard
+            step={stepData.step}
+            icon={stepData.icon}
+            title={stepData.title}
+            description={stepData.description}
+          />
+        ))
+      }
+    </div>
+  </div>
+</section>

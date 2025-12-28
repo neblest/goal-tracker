@@ -1,0 +1,31 @@
+---
+import AuthButtons from "./AuthButtons.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<section class="py-8 sm:py-12 px-4">
+  <div class="max-w-4xl mx-auto text-center space-y-6">
+    <!-- Title with gradient -->
+    <h1
+      class="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-[#D4A574] via-[#C9965E] to-[#A89F94] text-transparent bg-clip-text drop-shadow-lg"
+    >
+      {title}
+    </h1>
+
+    <!-- Description -->
+    <p class="text-lg sm:text-xl text-[#4A3F35] max-w-3xl mx-auto leading-relaxed">
+      {description}
+    </p>
+
+    <!-- CTA Buttons -->
+    <div class="pt-2">
+      <AuthButtons />
+    </div>
+  </div>
+</section>

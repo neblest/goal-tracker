@@ -1,0 +1,38 @@
+---
+import HeroSection from "./HeroSection.astro";
+import OnboardingSteps from "./OnboardingSteps.astro";
+---
+
+<div class="min-h-screen bg-[#FAF8F5]">
+  <!-- Optional header with logo/name -->
+  <header class="py-4 px-4">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center sm:text-left">
+        <div
+          class="text-xl font-bold bg-gradient-to-r from-[#D4A574] to-[#C9965E] text-transparent bg-clip-text"
+        >
+          GoalTracker
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main role="main">
+    <HeroSection
+      title="GoalTracker"
+      description="Osiągaj cele, ucz się z doświadczeń, rozwijaj się z pomocą AI"
+    />
+
+    <OnboardingSteps />
+  </main>
+
+  <!-- Optional footer -->
+  <footer class="py-6 px-4 mt-8">
+    <div class="max-w-7xl mx-auto text-center">
+      <p class="text-xs sm:text-sm text-[#8B7E74]">
+        © {new Date().getFullYear()} GoalTracker. Wszystkie prawa zastrzeżone.
+      </p>
+    </div>
+  </footer>
+</div>
