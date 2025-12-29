@@ -9,6 +9,7 @@ import type {
 } from "../../../types";
 import { assertParentGoalAccessible, createGoal, listGoals } from "../../../lib/services/goals.service";
 import { validateIterationChainForNewGoal } from "../../../lib/services/goal-lifecycle.service";
+import { getUserFromRequest } from "../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -128,54 +129,15 @@ export async function GET(context: APIContext) {
     const query: GetGoalsQueryDto = parseResult.data;
 
     // Step 2: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
 
-    // TODO: Remove hardcoded user ID before production deployment
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
-
-    /*
-    // Production authentication code (currently disabled):
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Missing or invalid authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Invalid or expired authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    */
-
     // Step 3: Call service to list goals
-    const result = await listGoals(supabase, user.id, query);
+    const result = await listGoals(supabase, authResult.userId, query);
 
     // Step 4: Return success response
     return new Response(
@@ -254,53 +216,13 @@ export async function GET(context: APIContext) {
  */
 export async function POST(context: APIContext) {
   try {
-    // Step 1: Authentication (disabled for development)
+    // Step 1: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
-
-    // TODO: Remove hardcoded user ID before production deployment
-    // For development, use a default user ID (create this user in Supabase first)
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
-
-    /* 
-    // Production authentication code (currently disabled):
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Missing or invalid authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Invalid or expired authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    */
 
     // Step 2: Parse and validate request body
     let body: unknown;
@@ -343,7 +265,7 @@ export async function POST(context: APIContext) {
     // Step 3: Validate parent_goal_id if provided
     if (command.parent_goal_id) {
       try {
-        await assertParentGoalAccessible(supabase, user.id, command.parent_goal_id);
+        await assertParentGoalAccessible(supabase, authResult.userId, command.parent_goal_id);
         // Validate iteration chain constraints
         await validateIterationChainForNewGoal(supabase, command.parent_goal_id);
       } catch (error) {
@@ -396,7 +318,7 @@ export async function POST(context: APIContext) {
     }
 
     // Step 4: Create goal in database
-    const goal = await createGoal(supabase, user.id, command);
+    const goal = await createGoal(supabase, authResult.userId, command);
 
     const response: CreateGoalResponseDto = {
       data: { goal },

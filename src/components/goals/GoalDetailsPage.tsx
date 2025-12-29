@@ -12,6 +12,8 @@ import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
+import { clearAuthTokens } from "@/lib/auth/authTokens";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 import type {
   GetGoalHistoryResponseDto,
   GetGoalResponseDto,
@@ -32,6 +34,7 @@ type GoalDetailsState =
   | { status: "success"; goal: GoalDetailsDto };
 
 export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
+  const currentUser = useCurrentUser();
   const [state, setState] = useState<GoalDetailsState>({ status: "loading" });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCongratulations, setShowCongratulations] = useState(false);
@@ -43,8 +46,20 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     window.history.back();
   }, []);
 
-  const handleLogout = useCallback(() => {
-    window.location.href = "/login";
+  const handleLogout = useCallback(async () => {
+    try {
+      // Call logout endpoint to invalidate session on server
+      await apiFetchJson("/api/auth/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      // Log error but continue with logout (clear tokens anyway)
+      console.error("Logout API call failed:", error);
+    } finally {
+      // Always clear tokens and redirect to login
+      clearAuthTokens();
+      window.location.href = "/login";
+    }
   }, []);
 
   const handleCreateGoal = useCallback((initialValues: any = {}) => {
@@ -228,16 +243,19 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     await fetchGoal({ keepData: true });
   }, [fetchGoal, state]);
 
+  // Extract user display name (use email or fallback)
+  const userDisplayName = currentUser.user?.email ?? "Użytkowniku";
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
       <CongratulationsAnimation
         isOpen={showCongratulations}
         onClose={() => setShowCongratulations(false)}
-        userName="Użytkowniku"
+        userName={userDisplayName}
       />
 
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
-        <AppHeader title="Szczegóły celu" userDisplayName="Użytkowniku" onLogout={handleLogout} />
+        <AppHeader title="Szczegóły celu" userDisplayName={userDisplayName} onLogout={handleLogout} />
       </header>
 
       <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-8 pb-16 pt-6">

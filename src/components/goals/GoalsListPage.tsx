@@ -19,11 +19,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { cn } from "@/lib/utils";
+import { clearAuthTokens } from "@/lib/auth/authTokens";
+import { apiFetchJson } from "@/lib/api/apiFetchJson";
 import type { GoalStatus } from "@/types";
 import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 
 import { useGoalsList } from "../hooks/useGoalsList";
 import type { GoalCardVm } from "../hooks/useGoalsList";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 const statusLabels: Record<GoalStatus, string> = {
   active: "Aktywne",
@@ -44,11 +47,24 @@ const orderLabels: Record<"asc" | "desc", string> = {
 
 export default function GoalsListPage() {
   const goals = useGoalsList();
+  const currentUser = useCurrentUser();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [modalInitialValues, setModalInitialValues] = useState<any>({});
 
-  const handleLogout = useCallback(() => {
-    window.location.href = "/login";
+  const handleLogout = useCallback(async () => {
+    try {
+      // Call logout endpoint to invalidate session on server
+      await apiFetchJson("/api/auth/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      // Log error but continue with logout (clear tokens anyway)
+      console.error("Logout API call failed:", error);
+    } finally {
+      // Always clear tokens and redirect to login
+      clearAuthTokens();
+      window.location.href = "/login";
+    }
   }, []);
 
   const handleCreateGoal = useCallback((initialValues = {}) => {
@@ -62,10 +78,13 @@ export default function GoalsListPage() {
 
   const showEmpty = !goals.isInitialLoading && goals.items.length === 0 && !goals.error;
 
+  // Extract user display name (use email or fallback)
+  const userDisplayName = currentUser.user?.email ?? "Użytkowniku";
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
-        <AppHeader title="Lista celów" userDisplayName="Użytkowniku" onLogout={handleLogout} />
+        <AppHeader title="Lista celów" userDisplayName={userDisplayName} onLogout={handleLogout} />
       </header>
 
       <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-8 pb-16 pt-6">

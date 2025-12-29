@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { ApiErrorDto, GetGoalResponseDto, UpdateGoalResponseDto } from "../../../types";
 import { getGoalDetails, updateGoal, deleteGoal } from "../../../lib/services/goals.service";
+import { getUserFromRequest } from "../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -96,54 +97,15 @@ export async function GET(context: APIContext) {
     const validatedGoalId = parseResult.data;
 
     // Step 2: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
 
-    // TODO: Remove hardcoded user ID before production deployment
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
-
-    /*
-    // Production authentication code (currently disabled):
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Missing or invalid authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Invalid or expired authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    */
-
     // Step 3: Call service to get goal details
-    const goalDetails = await getGoalDetails(supabase, user.id, validatedGoalId);
+    const goalDetails = await getGoalDetails(supabase, authResult.userId, validatedGoalId);
 
     // Step 4: Return success response
     const response: GetGoalResponseDto = {
@@ -309,54 +271,15 @@ export async function PATCH(context: APIContext) {
     const validatedBody = bodyParseResult.data;
 
     // Step 3: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
 
-    // TODO: Remove hardcoded user ID before production deployment
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
-
-    /*
-    // Production authentication code (currently disabled):
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Missing or invalid authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Invalid or expired authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    */
-
     // Step 4: Call service to update goal
-    const updatedGoal = await updateGoal(supabase, user.id, validatedGoalId, validatedBody);
+    const updatedGoal = await updateGoal(supabase, authResult.userId, validatedGoalId, validatedBody);
 
     // Step 5: Return success response
     const response: UpdateGoalResponseDto = {
@@ -483,54 +406,15 @@ export async function DELETE(context: APIContext) {
     const validatedGoalId = parseResult.data;
 
     // Step 2: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
 
-    // TODO: Remove hardcoded user ID before production deployment
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
-
-    /*
-    // Production authentication code (currently disabled):
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Missing or invalid authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Invalid or expired authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    */
-
     // Step 3: Call service to delete goal
-    await deleteGoal(supabase, user.id, validatedGoalId);
+    await deleteGoal(supabase, authResult.userId, validatedGoalId);
 
     // Step 4: Return 204 No Content
     return new Response(null, {

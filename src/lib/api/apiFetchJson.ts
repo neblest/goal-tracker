@@ -1,3 +1,5 @@
+import { getAccessToken, clearAuthTokens } from "@/lib/auth/authTokens";
+
 export class ApiError extends Error {
   status: number;
   body?: unknown;
@@ -14,6 +16,12 @@ function buildHeaders(init?: RequestInit): HeadersInit {
   const baseHeaders: HeadersInit = {
     Accept: "application/json",
   };
+
+  // Add Authorization header if access token exists
+  const accessToken = getAccessToken();
+  if (accessToken) {
+    baseHeaders.Authorization = `Bearer ${accessToken}`;
+  }
 
   if (init?.body && !(init.headers as HeadersInit)?.["Content-Type"]) {
     return { ...baseHeaders, "Content-Type": "application/json", ...init?.headers };
@@ -40,6 +48,8 @@ export async function apiFetchJson<T>(input: RequestInfo | URL, init?: RequestIn
   }
 
   if (response.status === 401 && typeof window !== "undefined") {
+    // Clear tokens on 401 (unauthorized/expired token)
+    clearAuthTokens();
     window.location.href = "/login";
   }
 

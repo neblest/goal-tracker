@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { ApiErrorDto, UpdateProgressResponseDto, DeleteProgressResponseDto } from "../../../types";
 import { updateProgressEntry, deleteProgressEntry } from "../../../lib/services/goal-progress.service";
+import { getUserFromRequest } from "../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -103,11 +104,12 @@ export async function PATCH(context: APIContext): Promise<Response> {
   // =========================================================================
   // 3. Authenticate user
   // =========================================================================
-  const supabase = context.locals.supabase;
+  const authResult = await getUserFromRequest(context);
+  if (!authResult.success) {
+    return authResult.response;
+  }
 
-  // Dev mode: use DEV_USER_ID if available
-  const devUserId = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-  const userId = { id: devUserId };
+  const supabase = context.locals.supabase;
 
   //   if (devUserId) {
   //     userId = devUserId;
@@ -138,7 +140,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
   // 4. Update progress entry via service
   // =========================================================================
   try {
-    const updatedProgress = await updateProgressEntry(supabase, userId.id, progressIdValidation.data, command);
+    const updatedProgress = await updateProgressEntry(supabase, authResult.userId, progressIdValidation.data, command);
 
     const successResponse: UpdateProgressResponseDto = {
       data: {
@@ -245,11 +247,12 @@ export async function DELETE(context: APIContext): Promise<Response> {
   // =========================================================================
   // 2. Authenticate user
   // =========================================================================
-  const supabase = context.locals.supabase;
+  const authResult = await getUserFromRequest(context);
+  if (!authResult.success) {
+    return authResult.response;
+  }
 
-  // Dev mode: use DEV_USER_ID if available
-  const devUserId = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-  const userId = { id: devUserId };
+  const supabase = context.locals.supabase;
 
   //   if (devUserId) {
   //     userId = devUserId;
@@ -280,7 +283,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
   // 3. Delete progress entry via service
   // =========================================================================
   try {
-    await deleteProgressEntry(supabase, userId.id, progressIdValidation.data);
+    await deleteProgressEntry(supabase, authResult.userId, progressIdValidation.data);
 
     // Return 204 No Content on successful deletion
     return new Response(null, {

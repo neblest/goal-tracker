@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { ApiErrorDto, SyncStatusesCommand, SyncStatusesResponseDto } from "../../../types";
 import { syncStatuses } from "../../../lib/services/goal-lifecycle.service";
+import { getUserFromRequest } from "../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -105,53 +106,15 @@ export async function POST(context: APIContext) {
     const command: SyncStatusesCommand = parseResult.data;
 
     // Step 2: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
 
-    // TODO: Remove hardcoded user ID before production deployment
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
-
-    /*
-    // Production authentication code (currently disabled):
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Missing or invalid authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
-    const { data: authData, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !authData.user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthenticated",
-            message: "Invalid or expired authentication token",
-          },
-        } satisfies ApiErrorDto<"unauthenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const user = authData.user;
-    */
-
     // Step 3: Execute sync logic via service
-    const result = await syncStatuses(supabase, user.id, command);
+    const result = await syncStatuses(supabase, authResult.userId, command);
 
     // Step 4: Return success response
     const response: SyncStatusesResponseDto = {

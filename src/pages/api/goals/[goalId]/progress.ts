@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { ApiErrorDto, GetGoalProgressResponseDto, CreateGoalProgressResponseDto } from "../../../../types";
 import { listGoalProgress, createGoalProgressEntry } from "../../../../lib/services/goal-progress.service";
+import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -142,15 +143,17 @@ export async function GET(context: APIContext): Promise<Response> {
   // }
   // const userId = userData.user.id;
 
-  // DEV MODE: hardcoded user ID (to be removed before production)
-  const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-  const userId = DEV_USER_ID;
+  // Authentication
+  const authResult = await getUserFromRequest(context);
+  if (!authResult.success) {
+    return authResult.response;
+  }
 
   // =========================================================================
   // 4. Service layer call
   // =========================================================================
   try {
-    const result = await listGoalProgress(supabase, userId, goalId, query);
+    const result = await listGoalProgress(supabase, authResult.userId, goalId, query);
 
     const successResponse: GetGoalProgressResponseDto = {
       data: result,
@@ -311,15 +314,17 @@ export async function POST(context: APIContext): Promise<Response> {
   // }
   // const userId = userData.user.id;
 
-  // DEV MODE: hardcoded user ID (to be removed before production)
-  const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-  const userId = DEV_USER_ID;
+  // Authentication
+  const authResult = await getUserFromRequest(context);
+  if (!authResult.success) {
+    return authResult.response;
+  }
 
   // =========================================================================
   // 4. Service layer call
   // =========================================================================
   try {
-    const result = await createGoalProgressEntry(supabase, userId, goalId, command);
+    const result = await createGoalProgressEntry(supabase, authResult.userId, goalId, command);
 
     const successResponse: CreateGoalProgressResponseDto = {
       data: result,

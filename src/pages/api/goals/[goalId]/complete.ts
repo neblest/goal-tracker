@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { CompleteGoalResponseDto, ApiErrorDto } from "../../../../types";
 import { completeGoal } from "../../../../lib/services/goal-lifecycle.service";
+import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -55,16 +56,13 @@ const goalIdSchema = z.string().uuid("Goal ID must be a valid UUID");
  * - 500: Server error during processing
  */
 export async function PATCH(context: APIContext): Promise<Response> {
-  const { locals, params } = context;
+  const { params } = context;
 
-  // Step 1: Verify user authentication via Supabase middleware
-  const {
-    data: { user },
-  } = await locals.supabase.auth.getUser();
-
-  // TODO: Remove hardcoded user ID before production deployment
-  const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-  const effectiveUserId = user?.id ?? DEV_USER_ID;
+  // Step 1: Authentication
+  const authResult = await getUserFromRequest(context);
+  if (!authResult.success) {
+    return authResult.response;
+  }
 
   // Step 2: Validate goalId path parameter
   const goalIdValidation = goalIdSchema.safeParse(params.goalId);
@@ -89,7 +87,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
   // Step 3: Complete the goal via service layer
   try {
-    const result = await completeGoal(locals.supabase, effectiveUserId, goalId);
+    const result = await completeGoal(context.locals.supabase, authResult.userId, goalId);
 
     const successResponse: CompleteGoalResponseDto = {
       data: {

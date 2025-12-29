@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { ApiErrorDto, GetGoalHistoryQueryDto, GetGoalHistoryResponseDto } from "../../../../types";
 import { listGoalHistory } from "../../../../lib/services/goal-history.service";
+import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -119,31 +120,16 @@ export async function GET(context: APIContext) {
     // }
 
     // const token = authHeader.replace("Bearer ", "");
+    // Step 3: Authentication
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
     const supabase = context.locals.supabase;
 
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await supabase.auth.getUser(token);
-
-    // if (authError || !user) {
-    //   return new Response(
-    //     JSON.stringify({
-    //       error: {
-    //         code: "unauthenticated",
-    //         message: "Invalid or expired token",
-    //       },
-    //     } satisfies ApiErrorDto<"unauthenticated">),
-    //     {
-    //       status: 401,
-    //       headers: { "Content-Type": "application/json" },
-    //     }
-    //   );
-    // }
-    const DEV_USER_ID = "7e4b878a-8597-4b14-a9dd-4d198b79a2ab";
-    const user = { id: DEV_USER_ID };
     // Step 4: Call service to get goal history
-    const result = await listGoalHistory(supabase, user.id, validatedGoalId, validatedQuery);
+    const result = await listGoalHistory(supabase, authResult.userId, validatedGoalId, validatedQuery);
 
     // Step 5: Return success response
     return new Response(

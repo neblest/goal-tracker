@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
+import { setAuthTokens } from "@/lib/auth/authTokens";
 import type { LoginCommand, LoginResponseDto } from "@/types";
 
 /**
@@ -93,7 +94,14 @@ export function LoginForm() {
 
       setIsSubmitting(true);
       try {
-        await loginUser(command);
+        const response = await loginUser(command);
+
+        // Zapisz tokeny do localStorage
+        setAuthTokens({
+          access_token: response.data.access_token,
+          refresh_token: response.data.refresh_token,
+        });
+
         // Sukces - przekierowanie do /app/goals
         window.location.href = "/app/goals";
       } catch (error) {
