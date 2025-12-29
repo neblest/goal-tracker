@@ -55,7 +55,7 @@ const getGoalsQuerySchema = z
  * - parent_goal_id: optional UUID or null
  */
 const createGoalSchema = z.object({
-  name: z.string().trim().min(1, "Goal name is required").max(500, "Goal name must not exceed 500 characters"),
+  name: z.string().trim().min(1, "Goal name is required").max(50, "Goal name must not exceed 50 characters"),
   target_value: z
     .string()
     .min(1, "Target value is required")

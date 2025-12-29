@@ -17,7 +17,7 @@ export function AppHeader({ title, userDisplayName, onLogout }: AppHeaderProps) 
         <span>{title}</span>
       </a>
       <div className="flex items-center gap-4">
-        <p className="text-sm text-[#8B7E74]">Cześć, {userDisplayName}</p>
+        <p className="text-sm text-[#8B7E74]">Hello, {userDisplayName}</p>
         <Button
           variant="outline"
           size="sm"
@@ -25,7 +25,7 @@ export function AppHeader({ title, userDisplayName, onLogout }: AppHeaderProps) 
           className="gap-2 border-[#D4A574]/30 text-[#4A3F35] hover:bg-[#D4A574]/10 hover:border-[#D4A574]"
         >
           <LogOut className="size-4" aria-hidden="true" />
-          Wyloguj
+          Logout
         </Button>
       </div>
     </div>

@@ -29,20 +29,20 @@ import type { GoalCardVm } from "../hooks/useGoalsList";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 
 const statusLabels: Record<GoalStatus, string> = {
-  active: "Aktywne",
-  completed_success: "Zakończone",
-  completed_failure: "Niezakończone",
-  abandoned: "Porzucone",
+  active: "Active",
+  completed_success: "Completed",
+  completed_failure: "Failed",
+  abandoned: "Abandoned",
 };
 
 const sortLabels: Record<"created_at" | "deadline", string> = {
-  created_at: "Data utworzenia",
-  deadline: "Termin",
+  created_at: "Created date",
+  deadline: "Deadline",
 };
 
 const orderLabels: Record<"asc" | "desc", string> = {
-  asc: "Rosnąco",
-  desc: "Malejąco",
+  asc: "Ascending",
+  desc: "Descending",
 };
 
 export default function GoalsListPage() {
@@ -61,9 +61,9 @@ export default function GoalsListPage() {
       // Log error but continue with logout (clear tokens anyway)
       console.error("Logout API call failed:", error);
     } finally {
-      // Always clear tokens and redirect to login
+      // Always clear tokens and redirect to landing page
       clearAuthTokens();
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   }, []);
 
@@ -79,12 +79,12 @@ export default function GoalsListPage() {
   const showEmpty = !goals.isInitialLoading && goals.items.length === 0 && !goals.error;
 
   // Extract user display name (use email or fallback)
-  const userDisplayName = currentUser.user?.email ?? "Użytkowniku";
+  const userDisplayName = currentUser.user?.email ?? "User";
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
-        <AppHeader title="Lista celów" userDisplayName={userDisplayName} onLogout={handleLogout} />
+        <AppHeader title="Goals List" userDisplayName={userDisplayName} onLogout={handleLogout} />
       </header>
 
       <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-8 pb-16 pt-6">
@@ -151,8 +151,8 @@ function GoalsListControls({
           <div className="relative rounded-xl bg-white border border-[#E5DDD5] hover:border-[#D4A574] focus-within:border-[#D4A574] focus-within:ring-2 focus-within:ring-[#D4A574]/20 transition-all duration-200">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#8B7E74]" aria-hidden="true" />
             <Input
-              aria-label="Szukaj celu"
-              placeholder="Szukaj po nazwie"
+              aria-label="Search goal"
+              placeholder="Search by name"
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
               maxLength={200}
@@ -170,7 +170,7 @@ function GoalsListControls({
         <div>
           <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Status</label>
           <Select value={status} onValueChange={(value) => onStatusChange(value as GoalStatus)}>
-            <SelectTrigger aria-label="Filtruj po statusie">
+            <SelectTrigger aria-label="Filter by status">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -184,11 +184,11 @@ function GoalsListControls({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Sortowanie</label>
+          <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Sort</label>
           <div className="grid grid-cols-2 gap-2">
             <Select value={sort} onValueChange={(value) => onSortChange(value as "created_at" | "deadline")}>
-              <SelectTrigger aria-label="Sortuj">
-                <SelectValue placeholder="Sortuj" />
+              <SelectTrigger aria-label="Sort">
+                <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(sortLabels).map(([value, label]) => (
@@ -200,8 +200,8 @@ function GoalsListControls({
             </Select>
 
             <Select value={order} onValueChange={(value) => onOrderChange(value as "asc" | "desc")}>
-              <SelectTrigger aria-label="Kolejność sortowania">
-                <SelectValue placeholder="Kolejność" />
+              <SelectTrigger aria-label="Sort order">
+                <SelectValue placeholder="Order" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(orderLabels).map(([value, label]) => (
@@ -232,7 +232,7 @@ function ErrorBanner({ error, onRetry }: ErrorBannerProps) {
       <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
       <span className="flex-1">{error.message}</span>
       <Button size="sm" variant="outline" onClick={onRetry}>
-        Spróbuj ponownie
+        Try again
       </Button>
     </div>
   );
@@ -240,7 +240,7 @@ function ErrorBanner({ error, onRetry }: ErrorBannerProps) {
 
 function GoalsGrid({ items, onCreateGoal }: { items: GoalCardVm[]; onCreateGoal: () => void }) {
   return (
-    <section aria-label="Cele" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <section aria-label="Goals" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
         <GoalCard key={item.id} item={item} />
       ))}
@@ -305,7 +305,7 @@ function GoalCard({ item }: { item: GoalCardVm }) {
               <span>{statusLabels[item.status]}</span>
               {item.status === "active" && item.progressPercent >= 100 ? (
                 <Badge className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-[#9CAA7F]/10 text-[#9CAA7F]">
-                  Zakończ
+                  Complete
                 </Badge>
               ) : null}
             </div>
@@ -340,7 +340,7 @@ function GoalCard({ item }: { item: GoalCardVm }) {
             </svg>
             <div className="absolute flex flex-col items-center justify-center text-sm font-semibold text-[#4A3F35]">
               <span>{Math.round(item.progressPercent)}%</span>
-              <span className="text-[11px] text-[#8B7E74]">postępu</span>
+              <span className="text-[11px] text-[#8B7E74]">progress</span>
             </div>
           </div>
           <div className="flex flex-1 flex-col gap-2">
@@ -350,12 +350,12 @@ function GoalCard({ item }: { item: GoalCardVm }) {
             {item.showDaysRemaining ? (
               <div className="inline-flex items-center gap-1 rounded-md bg-[#D4A574]/10 px-2 py-1 text-[12px] font-medium text-[#4A3F35]">
                 <CalendarClock className="size-3.5 text-[#D4A574]" aria-hidden="true" />
-                Pozostało {item.daysRemaining} dni
+                {item.daysRemaining} days left
               </div>
             ) : null}
           </div>
         </CardContent>
-        <CardFooter className="justify-end text-xs text-[#8B7E74]">Kliknij, aby przejść do szczegółów</CardFooter>
+        <CardFooter className="justify-end text-xs text-[#8B7E74]">Click for details</CardFooter>
       </Card>
     </a>
   );
@@ -382,10 +382,10 @@ function LoadMoreSection({ canLoadMore, isLoading, onLoadMore }: LoadMoreSection
         {isLoading ? (
           <>
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Ładowanie...
+            Loading...
           </>
         ) : (
-          "Załaduj więcej"
+          "Load more"
         )}
       </Button>
     </div>
@@ -398,12 +398,12 @@ function EmptyState({ onCreateGoal }: { onCreateGoal: () => void }) {
       className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-[#D4A574]/30 bg-white px-8 py-12 text-center"
       aria-live="polite"
     >
-      <p className="text-lg font-semibold text-[#4A3F35]">Brak celów</p>
+      <p className="text-lg font-semibold text-[#4A3F35]">No goals</p>
       <p className="max-w-md text-sm text-[#8B7E74]">
-        Nie masz jeszcze żadnych celów. Utwórz pierwszy, aby zacząć śledzić swój postęp.
+        You don't have any goals yet. Create your first one to start tracking your progress.
       </p>
       <Button onClick={onCreateGoal} className="mt-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
-        Utwórz cel
+        Create goal
       </Button>
     </section>
   );
@@ -413,7 +413,7 @@ function LoadingState() {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[#E5DDD5] bg-white px-4 py-3 text-sm text-[#8B7E74] shadow-sm">
       <Loader2 className="size-4 animate-spin text-[#D4A574]" aria-hidden="true" />
-      Ładowanie celów...
+      Loading goals...
     </div>
   );
 }

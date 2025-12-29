@@ -109,7 +109,7 @@ function buildGoalsQueryParams(query: GoalsListQueryState, search: string, page:
 function normalizeError(error: unknown): GoalsListError {
   if (error instanceof ApiError) {
     if (error.status === 401) {
-      return { kind: "unauthenticated", message: "Wymagane ponowne logowanie." };
+      return { kind: "unauthenticated", message: "Re-login required." };
     }
 
     if (error.status === 400) {
@@ -117,7 +117,7 @@ function normalizeError(error: unknown): GoalsListError {
     }
 
     if (error.status >= 500) {
-      return { kind: "server", message: "Wystąpił błąd serwera. Spróbuj ponownie." };
+      return { kind: "server", message: "A server error occurred. Please try again." };
     }
 
     return { kind: "unknown", message: error.message };
@@ -127,7 +127,7 @@ function normalizeError(error: unknown): GoalsListError {
     return { kind: "network", message: error.message };
   }
 
-  return { kind: "unknown", message: "Nie udało się wykonać żądania." };
+  return { kind: "unknown", message: "Failed to complete request." };
 }
 
 export function useGoalsList(): GoalsListViewModel {

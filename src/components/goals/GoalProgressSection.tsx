@@ -4,9 +4,11 @@ import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
+import { formatDate, formatDateTime } from "@/lib/utils/dateFormat";
 import type {
   CreateGoalProgressCommand,
   CreateGoalProgressResponseDto,
@@ -75,7 +77,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         setState({ items: response.data.items, loading: false, error: null });
         setPagination({ page, pageSize: pagination.pageSize, total: response.data.total });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Nie udało się pobrać progresu.";
+        const message = error instanceof Error ? error.message : "Failed to fetch progress.";
         setState((prev) => ({ ...prev, loading: false, error: message }));
       }
     },
@@ -95,11 +97,11 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   const validateValue = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) {
-      return "Wartość jest wymagana.";
+      return "Value is required.";
     }
     const parsed = Number.parseFloat(trimmed);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      return "Wartość musi być dodatnią liczbą.";
+      return "Value must be a positive number.";
     }
     return null;
   };
@@ -137,7 +139,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       } else if (error instanceof Error) {
         setCreateError(error.message);
       } else {
-        setCreateError("Nie udało się zapisać wpisu.");
+        setCreateError("Failed to save entry.");
       }
     } finally {
       setPendingId(null);
@@ -180,7 +182,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         }
         void fetchProgress(pagination.page);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Nie udało się zaktualizować wpisu.";
+        const message = error instanceof Error ? error.message : "Failed to update entry.";
         setCreateError(message);
       } finally {
         setPendingId(null);
@@ -215,7 +217,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       }
       void fetchProgress(pagination.page);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Nie udało się zaktualizować wpisu.";
+      const message = error instanceof Error ? error.message : "Failed to update entry.";
       setCreateError(message);
     } finally {
       setPendingId(null);
@@ -245,7 +247,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         }
         void fetchProgress(1);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Nie udało się usunąć wpisu.";
+        const message = error instanceof Error ? error.message : "Failed to delete entry.";
         setCreateError(message);
       } finally {
         setPendingId(null);
@@ -262,11 +264,11 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
   const canSubmit = canEdit && !pendingId;
 
   return (
-    <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Progres celu">
+    <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Goal progress">
       <header className="flex items-center justify-between pb-4">
         <div>
-          <h3 className="text-base font-semibold text-[#4A3F35]">Postęp</h3>
-          <p className="text-sm text-[#8B7E74]">Dodawaj i edytuj wpisy postępu. Dostępne tylko dla aktywnych celów.</p>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Progress</h3>
+          <p className="text-sm text-[#8B7E74]">Add and edit progress entries. Available only for active goals.</p>
         </div>
         <div className="flex items-center gap-2">
           {canEdit ? (
@@ -276,10 +278,10 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
             >
               <Plus className="size-4" aria-hidden="true" />
-              Dodaj Postęp
+              Add Progress
             </Button>
           ) : (
-            <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs text-[#4A3F35]">Tylko podgląd</span>
+            <span className="rounded-full bg-[#E5DDD5] px-3 py-1 text-xs text-[#4A3F35]">View only</span>
           )}
         </div>
       </header>
@@ -297,7 +299,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       {state.loading ? (
         <div className="flex items-center gap-2 text-sm text-[#8B7E74]">
           <Loader2 className="size-4 animate-spin text-[#D4A574]" aria-hidden="true" />
-          Ładowanie wpisów...
+          Loading entries...
         </div>
       ) : null}
 
@@ -328,11 +330,18 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                         />
                         {createError && <p className="text-xs text-[#C17A6F]">{createError}</p>}
                       </div>
-                      <Input
-                        className="flex-1"
-                        value={editingDraft.notes}
-                        onChange={(event) => setEditingDraft((prev) => ({ ...prev, notes: event.target.value }))}
-                      />
+                      <div className="flex-1 flex flex-col gap-1">
+                        <div className="flex justify-end">
+                          <span className="text-[11px] text-[#8B7E74]">{editingDraft.notes.length}/150</span>
+                        </div>
+                        <Textarea
+                          value={editingDraft.notes}
+                          onChange={(event) => setEditingDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                          maxLength={150}
+                          rows={3}
+                          className="resize-none"
+                        />
+                      </div>
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -342,7 +351,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                           }}
                           disabled={Boolean(pendingId)}
                         >
-                          Anuluj
+                          Cancel
                         </Button>
                         <Button
                           onClick={(e) => {
@@ -354,7 +363,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                           {pendingId === entry.id ? (
                             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                           ) : (
-                            "Zapisz"
+                            "Save"
                           )}
                         </Button>
                       </div>
@@ -362,7 +371,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                   ) : (
                     <>
                       <div className="w-16 font-semibold text-[#4A3F35]">{entry.value}</div>
-                      <div className="flex-1 text-sm text-[#8B7E74] truncate">{entry.notes || "Brak notatek"}</div>
+                      <div className="flex-1 text-sm text-[#8B7E74] truncate">{entry.notes || "No notes"}</div>
                     </>
                   )}
                 </CardContent>
@@ -375,7 +384,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       {state.items.length > 0 && totalPages > 1 ? (
         <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            Strona {pagination.page} z {totalPages}
+            Page {pagination.page} of {totalPages}
           </span>
           <div className="flex gap-2">
             <Button
@@ -384,7 +393,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               onClick={() => fetchProgress(Math.max(1, pagination.page - 1))}
               disabled={pagination.page === 1 || state.loading}
             >
-              Poprzednia
+              Previous
             </Button>
             <Button
               variant="outline"
@@ -392,7 +401,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               onClick={() => fetchProgress(Math.min(totalPages, pagination.page + 1))}
               disabled={pagination.page === totalPages || state.loading}
             >
-              Następna
+              Next
             </Button>
           </div>
         </div>
@@ -402,19 +411,19 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {confirm?.type === "delete" ? "Usuń wpis" : confirm?.type === "update" ? "Zapisz zmiany" : "Dodaj wpis"}
+              {confirm?.type === "delete" ? "Delete entry" : confirm?.type === "update" ? "Save changes" : "Add entry"}
             </DialogTitle>
             <DialogDescription>
               {confirm?.type === "delete"
-                ? "Czy na pewno chcesz usunąć ten wpis progresu?"
+                ? "Are you sure you want to delete this progress entry?"
                 : confirm?.type === "update"
-                  ? "Potwierdź zapis zmian tego wpisu."
-                  : "Potwierdź dodanie nowego wpisu."}
+                  ? "Confirm saving changes to this entry."
+                  : "Confirm adding a new entry."}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setConfirm(null)}>
-              Anuluj
+              Cancel
             </Button>
             <Button
               onClick={() => {
@@ -431,7 +440,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               variant={confirm?.type === "delete" ? "destructive" : "default"}
               disabled={Boolean(pendingId)}
             >
-              Potwierdź
+              Confirm
             </Button>
           </div>
         </DialogContent>
@@ -440,14 +449,14 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       <Dialog open={Boolean(selectedEntry)} onOpenChange={(open) => !open && setSelectedEntry(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Szczegóły wpisu progresu</DialogTitle>
-            <DialogDescription>Szczegółowe informacje o tym wpisie progresu.</DialogDescription>
+            <DialogTitle>Progress entry details</DialogTitle>
+            <DialogDescription>Detailed information about this progress entry.</DialogDescription>
           </DialogHeader>
           {selectedEntry && (
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-[#4A3F35]" htmlFor="modal-value">
-                  Wartość
+                  Value
                 </label>
                 <Input
                   id="modal-value"
@@ -465,24 +474,29 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 {modalError && <p className="text-sm text-[#C17A6F] mt-1">{modalError}</p>}
               </div>
               <div>
-                <label className="text-sm font-medium text-[#4A3F35]" htmlFor="modal-notes">
-                  Notatki
-                </label>
-                <Input
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-[#4A3F35]" htmlFor="modal-notes">
+                    Notes
+                  </label>
+                  <span className="text-[11px] text-[#8B7E74]">{modalDraft.notes.length}/150</span>
+                </div>
+                <Textarea
                   id="modal-notes"
                   value={modalDraft.notes}
                   onChange={(event) => setModalDraft((prev) => ({ ...prev, notes: event.target.value }))}
                   disabled={!canEdit}
-                  className="rounded-sm"
+                  maxLength={150}
+                  rows={4}
+                  className="resize-none rounded-sm"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-[#4A3F35]">Data utworzenia</label>
-                <p className="text-sm text-[#8B7E74]">{new Date(selectedEntry.created_at).toLocaleString()}</p>
+                <label className="text-sm font-medium text-[#4A3F35]">Created at</label>
+                <p className="text-sm text-[#8B7E74]">{formatDateTime(selectedEntry.created_at)}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-[#4A3F35]">Data aktualizacji</label>
-                <p className="text-sm text-[#8B7E74]">{new Date(selectedEntry.updated_at).toLocaleString()}</p>
+                <label className="text-sm font-medium text-[#4A3F35]">Updated at</label>
+                <p className="text-sm text-[#8B7E74]">{formatDateTime(selectedEntry.updated_at)}</p>
               </div>
             </div>
           )}
@@ -504,11 +518,11 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 ) : (
                   <Trash2 className="size-4" aria-hidden="true" />
                 )}
-                Usuń
+                Delete
               </Button>
             )}
             <Button variant="outline" onClick={() => setSelectedEntry(null)}>
-              Zamknij
+              Close
             </Button>
             {canEdit && (
               <Button
@@ -519,7 +533,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 {pendingId === selectedEntry?.id ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 ) : null}
-                Zapisz
+                Save
               </Button>
             )}
           </div>
@@ -538,8 +552,8 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dodaj wpis progresu</DialogTitle>
-            <DialogDescription>Dodaj nowy wpis postępu dla tego celu.</DialogDescription>
+            <DialogTitle>Add progress entry</DialogTitle>
+            <DialogDescription>Add a new progress entry for this goal.</DialogDescription>
           </DialogHeader>
           <form
             onSubmit={(event) => {
@@ -551,7 +565,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-[#4A3F35]" htmlFor="create-value">
-                  Wartość
+                  Value
                 </label>
                 <Input
                   id="create-value"
@@ -568,14 +582,19 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 {createError && <p className="text-sm text-[#C17A6F] mt-1">{createError}</p>}
               </div>
               <div>
-                <label className="text-sm font-medium text-[#4A3F35]" htmlFor="create-notes">
-                  Notatki (opcjonalnie)
-                </label>
-                <Input
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-[#4A3F35]" htmlFor="create-notes">
+                    Notes (optional)
+                  </label>
+                  <span className="text-[11px] text-[#8B7E74]">{createDraft.notes.length}/150</span>
+                </div>
+                <Textarea
                   id="create-notes"
                   value={createDraft.notes}
                   onChange={(event) => setCreateDraft((prev) => ({ ...prev, notes: event.target.value }))}
-                  className="rounded-sm"
+                  maxLength={150}
+                  rows={4}
+                  className="resize-none rounded-sm"
                 />
               </div>
             </div>
@@ -590,7 +609,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 }}
                 disabled={Boolean(pendingId)}
               >
-                Anuluj
+                Cancel
               </Button>
               <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
                 {pendingId === "new" ? (
@@ -598,7 +617,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 ) : (
                   <Plus className="size-4" aria-hidden="true" />
                 )}
-                Zapisz Postęp
+                Save Progress
               </Button>
             </div>
           </form>

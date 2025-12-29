@@ -26,22 +26,24 @@ export function GoalReflectionNotesSection({ value, onSave }: GoalReflectionNote
   return (
     <section
       className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
-      aria-label="Notatka refleksyjna"
+      aria-label="Reflection note"
     >
       <header className="flex items-center justify-between pb-3">
         <div>
-          <h3 className="text-base font-semibold text-[#4A3F35]">Notatka refleksyjna</h3>
-          <p className="text-sm text-[#8B7E74]">Dowolna notatka podsumowująca przebieg celu.</p>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Reflection note</h3>
+          <p className="text-sm text-[#8B7E74]">Any note summarizing the progress of the goal.</p>
         </div>
+        <span className="text-[11px] text-[#8B7E74]">{draft.length}/1000</span>
       </header>
       <div className="space-y-3">
         <Textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={handleBlur}
+          maxLength={1000}
           rows={6}
           className="resize-none"
-          aria-label="Notatka refleksyjna"
+          aria-label="Reflection note"
         />
       </div>
     </section>

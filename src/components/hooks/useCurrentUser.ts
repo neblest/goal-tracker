@@ -48,10 +48,10 @@ export function useCurrentUser(): UseCurrentUserResult {
             // 401 errors are handled by apiFetchJson (redirect to login)
             // Other errors should be displayed
             if (err.status !== 401) {
-              setError("Nie udało się pobrać danych użytkownika");
+              setError("Failed to fetch user data");
             }
           } else {
-            setError("Błąd połączenia z serwerem");
+            setError("Server connection error");
           }
           setUser(null);
         }

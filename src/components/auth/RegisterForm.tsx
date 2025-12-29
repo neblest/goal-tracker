@@ -7,7 +7,7 @@ import { validateEmail, validatePassword, validateConfirmPassword } from "@/lib/
 import type { RegisterCommand, RegisterResponseDto } from "@/types";
 
 /**
- * ViewModel stanu formularza rejestracji
+ * Registration form state ViewModel
  */
 export interface RegisterFormVm {
   email: string;
@@ -16,7 +16,7 @@ export interface RegisterFormVm {
 }
 
 /**
- * Błędy walidacji formularza rejestracji
+ * Registration form validation errors
  */
 export interface RegisterFormErrors {
   email?: string;
@@ -26,8 +26,8 @@ export interface RegisterFormErrors {
 }
 
 /**
- * Komponent formularza rejestracji
- * Obsługuje rejestrację nowego użytkownika z walidacją po stronie klienta
+ * Registration form component
+ * Handles new user registration with client-side validation
  */
 export function RegisterForm() {
   const [values, setValues] = useState<RegisterFormVm>({
@@ -40,13 +40,13 @@ export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   /**
-   * Obsługa zmiany wartości pola formularza
+   * Handle form field value changes
    */
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setValues((prev) => ({ ...prev, [name]: value }));
 
-    // Czyszczenie błędu dla edytowanego pola
+    // Clear error for edited field
     const fieldName = name as keyof RegisterFormErrors;
     if (errors[fieldName]) {
       setErrors((prev) => {
@@ -58,8 +58,8 @@ export function RegisterForm() {
   };
 
   /**
-   * Walidacja wszystkich pól formularza
-   * @returns true jeśli formularz jest poprawny, false w przeciwnym razie
+   * Validate all form fields
+   * @returns true if form is valid, false otherwise
    */
   const validate = (): boolean => {
     const newErrors: RegisterFormErrors = {};
@@ -78,7 +78,7 @@ export function RegisterForm() {
   };
 
   /**
-   * Wywołanie API rejestracji
+   * Registration API call
    */
   const register = async (command: RegisterCommand): Promise<RegisterResponseDto> => {
     return apiFetchJson<RegisterResponseDto>("/api/auth/register", {
@@ -88,12 +88,12 @@ export function RegisterForm() {
   };
 
   /**
-   * Obsługa submit formularza
+   * Handle form submission
    */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Czyszczenie błędu ogólnego
+    // Clear general error
     if (errors.form) {
       setErrors((prev) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -102,7 +102,7 @@ export function RegisterForm() {
       });
     }
 
-    // Walidacja
+    // Validation
     if (!validate()) return;
 
     setIsSubmitting(true);
@@ -115,21 +115,21 @@ export function RegisterForm() {
 
       await register(command);
 
-      // Przekierowanie po pomyślnej rejestracji
+      // Redirect after successful registration
       window.location.href = "/app/goals";
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 409) {
-          setErrors((prev) => ({ ...prev, email: "Ten adres e-mail jest już używany." }));
+          setErrors((prev) => ({ ...prev, email: "This email address is already in use." }));
         } else if (error.status === 429) {
-          setErrors((prev) => ({ ...prev, form: "Zbyt wiele prób. Spróbuj ponownie za chwilę." }));
+          setErrors((prev) => ({ ...prev, form: "Too many attempts. Please try again in a moment." }));
         } else if (error.status >= 500) {
-          setErrors((prev) => ({ ...prev, form: "Wystąpił błąd serwera. Spróbuj ponownie później." }));
+          setErrors((prev) => ({ ...prev, form: "A server error occurred. Please try again later." }));
         } else {
-          setErrors((prev) => ({ ...prev, form: error.message || "Nieprawidłowe dane." }));
+          setErrors((prev) => ({ ...prev, form: error.message || "Invalid data." }));
         }
       } else {
-        setErrors((prev) => ({ ...prev, form: "Nie udało się połączyć z serwerem. Sprawdź połączenie internetowe." }));
+        setErrors((prev) => ({ ...prev, form: "Failed to connect to server. Check your internet connection." }));
       }
     } finally {
       setIsSubmitting(false);
@@ -138,10 +138,10 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      {/* Pole email */}
+      {/* Email field */}
       <div className="space-y-2">
         <Label htmlFor="email" className="text-[#4A3F35]">
-          Adres e-mail
+          Email address
         </Label>
         <Input
           id="email"
@@ -152,7 +152,7 @@ export function RegisterForm() {
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
           disabled={isSubmitting}
-          placeholder="nazwa@example.com"
+          placeholder="name@example.com"
         />
         {errors.email && (
           <p id="email-error" className="text-sm text-[#C17A6F]">
@@ -161,10 +161,10 @@ export function RegisterForm() {
         )}
       </div>
 
-      {/* Pole hasła */}
+      {/* Password field */}
       <div className="space-y-2">
         <Label htmlFor="password" className="text-[#4A3F35]">
-          Hasło
+          Password
         </Label>
         <Input
           id="password"
@@ -178,7 +178,7 @@ export function RegisterForm() {
         />
         {!errors.password && (
           <p id="password-requirements" className="text-xs text-[#8B7E74]">
-            Hasło musi mieć co najmniej 8 znaków.
+            Password must be at least 8 characters.
           </p>
         )}
         {errors.password && (
@@ -188,10 +188,10 @@ export function RegisterForm() {
         )}
       </div>
 
-      {/* Pole potwierdzenia hasła */}
+      {/* Confirm password field */}
       <div className="space-y-2">
         <Label htmlFor="confirmPassword" className="text-[#4A3F35]">
-          Potwierdź hasło
+          Confirm password
         </Label>
         <Input
           id="confirmPassword"
@@ -210,16 +210,16 @@ export function RegisterForm() {
         )}
       </div>
 
-      {/* Błąd ogólny */}
+      {/* General error */}
       {errors.form && (
         <div aria-live="polite" className="rounded-xl bg-[#C17A6F]/10 p-3 border border-[#C17A6F]/20">
           <p className="text-sm text-[#C17A6F]">{errors.form}</p>
         </div>
       )}
 
-      {/* Przycisk submit */}
+      {/* Submit button */}
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Tworzenie konta..." : "Załóż konto"}
+        {isSubmitting ? "Creating account..." : "Create account"}
       </Button>
     </form>
   );

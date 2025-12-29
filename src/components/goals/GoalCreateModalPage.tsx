@@ -47,7 +47,7 @@ export default function GoalCreateModalPage({
           throw new Error(error.message);
         }
 
-        throw new Error("Nie udało się utworzyć celu.");
+        throw new Error("Failed to create goal.");
       } finally {
         setIsSubmitting(false);
       }
@@ -60,9 +60,9 @@ export default function GoalCreateModalPage({
       <DialogContent className="w-full max-w-2xl p-0 sm:p-0 bg-white border-[#E5DDD5]">
         <div className="flex flex-col gap-4 p-6 sm:p-7">
           <DialogHeader className="space-y-2">
-            <DialogTitle className="text-[#4A3F35]">Utwórz nowy cel</DialogTitle>
+            <DialogTitle className="text-[#4A3F35]">Create new goal</DialogTitle>
             <DialogDescription className="text-[#8B7E74]">
-              Uzupełnij dane, aby rozpocząć śledzenie nowego celu.
+              Fill in the details to start tracking a new goal.
             </DialogDescription>
           </DialogHeader>
 

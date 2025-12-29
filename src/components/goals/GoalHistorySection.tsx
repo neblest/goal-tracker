@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson } from "@/lib/api/apiFetchJson";
+import { formatDate, formatDateTime } from "@/lib/utils/dateFormat";
 import type { GetGoalHistoryResponseDto, GoalHistoryItemDto, GoalStatus } from "@/types";
 
 interface GoalHistorySectionProps {
@@ -11,10 +12,10 @@ interface GoalHistorySectionProps {
 }
 
 const statusLabels: Record<GoalStatus, string> = {
-  active: "Aktywne",
-  completed_success: "Zakończone (powodzenie)",
-  completed_failure: "Zakończone (niepowodzenie)",
-  abandoned: "Porzucone",
+  active: "Active",
+  completed_success: "Completed (success)",
+  completed_failure: "Completed (failure)",
+  abandoned: "Abandoned",
 };
 
 export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionProps) {
@@ -34,7 +35,7 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
       });
       setItems(items);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Nie udało się wczytać historii.";
+      const message = error instanceof Error ? error.message : "Failed to load history.";
       setError(message);
     } finally {
       setLoading(false);
@@ -48,18 +49,18 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
   return (
     <section
       className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
-      aria-label="Historia iteracji celu"
+      aria-label="Goal iteration history"
     >
       <header className="flex items-center justify-between pb-4">
         <div>
-          <h3 className="text-base font-semibold text-[#4A3F35]">Historia iteracji</h3>
-          <p className="text-sm text-[#8B7E74]">Łańcuch powiązanych celów.</p>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Iteration history</h3>
+          <p className="text-sm text-[#8B7E74]">Chain of related goals.</p>
         </div>
       </header>
 
-      {loading ? <p className="text-sm text-[#8B7E74]">Ładowanie historii...</p> : null}
+      {loading ? <p className="text-sm text-[#8B7E74]">Loading history...</p> : null}
       {error ? <p className="text-sm text-[#C17A6F]">{error}</p> : null}
-      {!loading && !error && items.length === 0 ? <p className="text-sm text-[#8B7E74]">Brak historii.</p> : null}
+      {!loading && !error && items.length === 0 ? <p className="text-sm text-[#8B7E74]">No history.</p> : null}
 
       <div className="max-h-55 overflow-y-auto grid gap-3">
         {items.map((item) => {
@@ -77,14 +78,14 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
             >
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <span className="font-semibold text-[#4A3F35] flex-shrink-0 truncate">{item.name}</span>
-                <span className="text-sm text-[#8B7E74] flex-shrink-0">Postęp {item.computed.current_value}</span>
+                <span className="text-sm text-[#8B7E74] flex-shrink-0">Progress {item.computed.current_value}</span>
                 <span className="text-sm text-[#8B7E74] flex-shrink-0">
                   {item.status === "active" ? (
-                    <>Termin: {item.deadline}</>
+                    <>Deadline: {item.deadline}</>
                   ) : (
                     <>
-                      Data zakończenia:{" "}
-                      {item.updated_at ? new Date(item.updated_at).toLocaleDateString("pl-PL") : item.deadline}
+                      Completion date:{" "}
+                      {item.updated_at ? formatDate(item.updated_at) : item.deadline}
                     </>
                   )}
                 </span>

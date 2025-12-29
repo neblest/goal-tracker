@@ -18,7 +18,7 @@ interface FloatingIcon {
   size: number;
 }
 
-export function CongratulationsAnimation({ isOpen, onClose, userName = "Użytkowniku" }: CongratulationsAnimationProps) {
+export function CongratulationsAnimation({ isOpen, onClose, userName = "User" }: CongratulationsAnimationProps) {
   const [icons, setIcons] = useState<FloatingIcon[]>([]);
   const [showText, setShowText] = useState(false);
 
@@ -97,9 +97,9 @@ export function CongratulationsAnimation({ isOpen, onClose, userName = "Użytkow
         }`}
       >
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg leading-tight">
-          Gratulacje, {userName}
+          Congratulations, {userName}
           <br />
-          <span className="text-[#D4A574]">osiągnięcia kolejnego celu!</span>
+          <span className="text-[#D4A574]">on achieving another goal!</span>
         </h1>
       </div>
 

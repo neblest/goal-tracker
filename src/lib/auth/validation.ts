@@ -1,35 +1,35 @@
 /**
- * Walidacja adresu email
- * @param value - wartość pola email
- * @returns komunikat błędu lub null jeśli pole jest prawidłowe
+ * Email address validation
+ * @param value - email field value
+ * @returns error message or null if field is valid
  */
 export function validateEmail(value: string): string | null {
   const trimmed = value.trim();
-  if (!trimmed) return "Adres e-mail jest wymagany.";
+  if (!trimmed) return "Email address is required.";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(trimmed)) return "Podaj prawidłowy adres e-mail.";
+  if (!emailRegex.test(trimmed)) return "Enter a valid email address.";
   return null;
 }
 
 /**
- * Walidacja hasła
- * @param value - wartość pola hasła
- * @returns komunikat błędu lub null jeśli pole jest prawidłowe
+ * Password validation
+ * @param value - password field value
+ * @returns error message or null if field is valid
  */
 export function validatePassword(value: string): string | null {
-  if (!value) return "Hasło jest wymagane.";
-  if (value.length < 8) return "Hasło musi mieć co najmniej 8 znaków.";
+  if (!value) return "Password is required.";
+  if (value.length < 8) return "Password must be at least 8 characters.";
   return null;
 }
 
 /**
- * Walidacja potwierdzenia hasła
- * @param password - wartość pola hasła
- * @param confirmPassword - wartość pola potwierdzenia hasła
- * @returns komunikat błędu lub null jeśli pole jest prawidłowe
+ * Password confirmation validation
+ * @param password - password field value
+ * @param confirmPassword - password confirmation field value
+ * @returns error message or null if field is valid
  */
 export function validateConfirmPassword(password: string, confirmPassword: string): string | null {
-  if (!confirmPassword) return "Potwierdzenie hasła jest wymagane.";
-  if (password !== confirmPassword) return "Hasła muszą być identyczne.";
+  if (!confirmPassword) return "Password confirmation is required.";
+  if (password !== confirmPassword) return "Passwords must match.";
   return null;
 }

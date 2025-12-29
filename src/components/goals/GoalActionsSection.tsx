@@ -46,7 +46,7 @@ export function GoalActionsSection({
   const handleAbandon = useCallback(async () => {
     setFormError(null);
     if (abandonReason.trim().length === 0) {
-      setFormError("Powód jest wymagany.");
+      setFormError("Reason is required.");
       return;
     }
     setPending(true);
@@ -65,7 +65,7 @@ export function GoalActionsSection({
       } else if (error instanceof Error) {
         setFormError(error.message);
       } else {
-        setFormError("Nie udało się porzucić celu.");
+        setFormError("Failed to abandon goal.");
       }
     } finally {
       setPending(false);
@@ -82,11 +82,11 @@ export function GoalActionsSection({
       };
 
       if (!commandBase.target_value || Number.parseFloat(commandBase.target_value) <= 0) {
-        setFormError("Podaj dodatnią wartość docelową.");
+        setFormError("Enter a positive target value.");
         return;
       }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(commandBase.deadline)) {
-        setFormError("Podaj deadline w formacie RRRR-MM-DD.");
+        setFormError("Enter deadline in YYYY-MM-DD format.");
         return;
       }
 
@@ -125,7 +125,7 @@ export function GoalActionsSection({
         } else if (error instanceof Error) {
           setFormError(error.message);
         } else {
-          setFormError("Nie udało się wykonać akcji.");
+          setFormError("Failed to perform action.");
         }
       } finally {
         setPending(false);
@@ -136,17 +136,17 @@ export function GoalActionsSection({
 
   if (status === "active") {
     return (
-      <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Akcje celu">
+      <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Goal actions">
         <header className="flex items-center justify-between pb-3">
           <div>
-            <h3 className="text-base font-semibold text-[#4A3F35]">Akcje</h3>
-            <p className="text-sm text-[#8B7E74]">Porzuć cel, jeśli nie jest już aktualny.</p>
+            <h3 className="text-base font-semibold text-[#4A3F35]">Actions</h3>
+            <p className="text-sm text-[#8B7E74]">Abandon the goal if it is no longer relevant.</p>
           </div>
         </header>
         {formError ? <p className="mb-2 text-sm text-[#C17A6F]">{formError}</p> : null}
         <div className="space-y-2">
           <label className="text-sm font-medium text-[#4A3F35]" htmlFor="abandon-reason">
-            Powód porzucenia
+            Reason for abandonment
           </label>
           <Textarea
             id="abandon-reason"
@@ -163,7 +163,7 @@ export function GoalActionsSection({
             disabled={pending}
             className="bg-[#C17A6F] hover:bg-[#B0685D] text-white"
           >
-            {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : "Porzuć cel"}
+            {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : "Abandon goal"}
           </Button>
         </div>
       </section>
@@ -171,22 +171,22 @@ export function GoalActionsSection({
   }
 
   if (status === "completed_success" || status === "completed_failure") {
-    const actionLabel = status === "completed_success" ? "Kontynuuj" : "Spróbuj ponownie";
+    const actionLabel = status === "completed_success" ? "Continue" : "Try again";
     const mode = status === "completed_success" ? "continue" : "retry";
 
     return (
-      <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Akcje celu">
+      <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Goal actions">
         <header className="flex items-center justify-between pb-3">
           <div>
-            <h3 className="text-base font-semibold text-[#4A3F35]">Akcje</h3>
-            <p className="text-sm text-[#8B7E74]">Stwórz kolejną iterację celu.</p>
+            <h3 className="text-base font-semibold text-[#4A3F35]">Actions</h3>
+            <p className="text-sm text-[#8B7E74]">Create another iteration of the goal.</p>
           </div>
         </header>
         {formError ? <p className="mb-2 text-sm text-[#C17A6F]">{formError}</p> : null}
         <div className="grid gap-3 md:grid-cols-3">
           <div className="space-y-2">
             <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-name">
-              Nazwa
+              Name
             </label>
             <Input
               id="restart-name"
@@ -196,7 +196,7 @@ export function GoalActionsSection({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-target">
-              Wartość docelowa
+              Target value
             </label>
             <Input
               id="restart-target"
@@ -207,13 +207,15 @@ export function GoalActionsSection({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-[#4A3F35]" htmlFor="restart-deadline">
-              Termin
+              Deadline (dd.MM.yyyy)
             </label>
             <Input
               id="restart-deadline"
-              type="date"
+              type="text"
               value={restartDraft.deadline}
               onChange={(event) => setRestartDraft((prev) => ({ ...prev, deadline: event.target.value }))}
+              placeholder="31.12.2024"
+              maxLength={10}
             />
           </div>
         </div>

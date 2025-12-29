@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiError } from "@/lib/api/apiFetchJson";
 import { normalizeTrim, validateDeadlineFuture, validateGoalName, validateTargetValue } from "@/lib/goals/validation";
+import { formatDate, formatDateTime } from "@/lib/utils/dateFormat";
 import type { GoalStatus, UpdateGoalCommand } from "@/types";
 
 interface GoalMetricsSectionProps {
@@ -99,14 +100,14 @@ export function GoalMetricsSection({
         if (formState.target_value !== targetValue) command.target_value = formState.target_value;
         if (formState.deadline !== deadline) command.deadline = formState.deadline;
         await onSubmit(command);
-        setSuccessMessage("Zapisano zmiany");
+        setSuccessMessage("Changes saved");
         setTimeout(() => setSuccessMessage(null), 3000);
         setIsEditing(false);
       } catch (error) {
         if (error instanceof ApiError) {
           setErrors({ form: error.message });
         } else {
-          setErrors({ form: "Wystąpił błąd podczas zapisywania." });
+          setErrors({ form: "An error occurred while saving." });
         }
       } finally {
         setSubmitting(false);
@@ -145,17 +146,17 @@ export function GoalMetricsSection({
 
   return (
     <>
-      <section aria-label="Postęp celu" className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm">
+      <section aria-label="Goal progress" className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm">
         {isEditing ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <header className="pb-4">
-              <h3 className="text-base font-semibold text-[#4A3F35]">Edytuj szczegóły celu</h3>
+              <h3 className="text-base font-semibold text-[#4A3F35]">Edit goal details</h3>
             </header>
 
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor={`${baseId}-name`} className="text-[#4A3F35]">
-                  Nazwa
+                  Name
                 </Label>
                 <Input
                   id={`${baseId}-name`}
@@ -174,7 +175,7 @@ export function GoalMetricsSection({
 
               <div className="space-y-2">
                 <Label htmlFor={`${baseId}-target`} className="text-[#4A3F35]">
-                  Wartość docelowa
+                  Target value
                 </Label>
                 <Input
                   id={`${baseId}-target`}
@@ -193,13 +194,15 @@ export function GoalMetricsSection({
 
               <div className="space-y-2">
                 <Label htmlFor={`${baseId}-deadline`} className="text-[#4A3F35]">
-                  Termin
+                  Deadline (dd.MM.yyyy)
                 </Label>
                 <Input
                   id={`${baseId}-deadline`}
-                  type="date"
+                  type="text"
                   value={formState.deadline}
                   onChange={(event) => handleChange("deadline", event.target.value)}
+                  placeholder="31.12.2024"
+                  maxLength={10}
                   aria-invalid={Boolean(errors.deadline)}
                   aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
                 />
@@ -217,14 +220,14 @@ export function GoalMetricsSection({
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={handleCancel} disabled={submitting}>
-                Anuluj
+                Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={submitting || !hasChanges}
                 className="bg-[#D4A574] hover:bg-[#C9965E] text-white"
               >
-                {submitting ? "Zapisywanie..." : "Zapisz"}
+                {submitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>
@@ -235,13 +238,13 @@ export function GoalMetricsSection({
               <div className="flex items-center gap-4">
                 <div className="text-sm text-[#8B7E74]">
                   {goalStatus === "active" ? (
-                    <>Termin: {new Date(deadline).toLocaleDateString("pl-PL")}</>
+                    <>Deadline: {formatDate(deadline)}</>
                   ) : (
                     <>
-                      Data zakończenia:{" "}
+                      Completion date:{" "}
                       {updatedAt
-                        ? new Date(updatedAt).toLocaleDateString("pl-PL")
-                        : new Date(deadline).toLocaleDateString("pl-PL")}
+                        ? formatDate(updatedAt)
+                        : formatDate(deadline)}
                     </>
                   )}
                 </div>
@@ -252,9 +255,9 @@ export function GoalMetricsSection({
                       onClick={() => setIsEditing(true)}
                       variant="outline"
                       size="sm"
-                      title={isLocked ? "Edycja jest zablokowana z powodu trwającego progresu" : undefined}
+                      title={isLocked ? "Editing is locked due to ongoing progress" : undefined}
                     >
-                      Edytuj
+                      Edit
                     </Button>
                     <Button
                       onClick={() => setIsAbandonModalOpen(true)}
@@ -262,7 +265,7 @@ export function GoalMetricsSection({
                       size="sm"
                       className="text-red-600 hover:text-red-700"
                     >
-                      Porzuć
+                      Abandon
                     </Button>
                   </>
                 ) : goalStatus === "completed_success" && isYoungestInChain ? (
@@ -281,7 +284,7 @@ export function GoalMetricsSection({
                       className="text-[#D4A574] hover:text-[#C9965E]"
                       disabled={!onCreateGoal}
                     >
-                      Kontynuuj
+                      Continue
                     </Button>
                   </>
                 ) : (goalStatus === "completed_failure" || goalStatus === "abandoned") && isYoungestInChain ? (
@@ -301,7 +304,7 @@ export function GoalMetricsSection({
                       className="text-[#C17A6F] hover:text-[#A85B50]"
                       disabled={!onCreateGoal}
                     >
-                      Ponów
+                      Retry
                     </Button>
                   </>
                 ) : null}
@@ -321,7 +324,7 @@ export function GoalMetricsSection({
                         setCompleting(false);
                       }
                     }}
-                    aria-label="Zakończ cel"
+                    aria-label="Complete goal"
                     disabled={completing}
                     className={`size-36 flex flex-col items-center justify-center rounded-full gap-0 bg-[#D4A574] hover:bg-[#C9965E] text-white font-semibold`}
                   >
@@ -329,14 +332,14 @@ export function GoalMetricsSection({
                       <Loader2 className="size-6 animate-spin" aria-hidden="true" />
                     ) : (
                       <>
-                        <span className="text-lg">Zakończ!</span>
-                        <span className="text-xs font-normal">Cel osiągnięty</span>
+                        <span className="text-lg">Complete!</span>
+                        <span className="text-xs font-normal">Goal achieved</span>
                       </>
                     )}
                   </Button>
                 ) : (
                   <>
-                    <svg className="size-36" viewBox="0 0 160 160" role="img" aria-label={`Postęp ${clampedPercent}%`}>
+                    <svg className="size-36" viewBox="0 0 160 160" role="img" aria-label={`Progress ${clampedPercent}%`}>
                       <defs>
                         <linearGradient id={`progressGradient-${baseId}`} x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#7B5E3A" />
@@ -369,7 +372,7 @@ export function GoalMetricsSection({
                     </svg>
                     <div className="absolute flex flex-col items-center justify-center text-lg font-semibold text-[#4A3F35]">
                       <span>{Math.round(clampedPercent)}%</span>
-                      <span className="text-xs text-[#8B7E74]">postępu</span>
+                      <span className="text-xs text-[#8B7E74]">progress</span>
                     </div>
                   </>
                 )}
@@ -382,7 +385,7 @@ export function GoalMetricsSection({
                 {showDaysRemaining ? (
                   <div className="inline-flex w-fit items-center gap-2 rounded-md bg-[#D4A574]/10 px-3 py-1.5 text-sm font-medium text-[#4A3F35]">
                     <CalendarClock className="size-4 text-[#D4A574]" aria-hidden="true" />
-                    Pozostało {daysRemaining} dni
+                    {daysRemaining} days remaining
                   </div>
                 ) : goalStatus !== "active" ? (
                   <div
@@ -395,14 +398,14 @@ export function GoalMetricsSection({
                     }`}
                   >
                     {goalStatus === "completed_success"
-                      ? "Ukończono powodzeniem"
+                      ? "Completed successfully"
                       : goalStatus === "completed_failure"
-                        ? "Ukończono niepowodzeniem"
-                        : "Porzucono"}
+                        ? "Completed unsuccessfully"
+                        : "Abandoned"}
                   </div>
                 ) : null}
                 <p className="text-sm text-[#8B7E74]">
-                  Postęp jest obliczany na podstawie sumy wpisów postępu względem wartości docelowej.
+                  Progress is calculated based on the sum of progress entries relative to the target value.
                 </p>
               </div>
             </div>
@@ -413,34 +416,34 @@ export function GoalMetricsSection({
       <Dialog open={isAbandonModalOpen} onOpenChange={setIsAbandonModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Porzuć cel</DialogTitle>
-            <DialogDescription>Czy na pewno chcesz porzucić cel? Wybierz powód:</DialogDescription>
+            <DialogTitle>Abandon goal</DialogTitle>
+            <DialogDescription>Are you sure you want to abandon this goal? Select a reason:</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="abandon-reason">Powód</Label>
+              <Label htmlFor="abandon-reason">Reason</Label>
               <Select value={selectedReason} onValueChange={setSelectedReason}>
                 <SelectTrigger id="abandon-reason">
-                  <SelectValue placeholder="Wybierz powód" />
+                  <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Brak czasu">Brak czasu</SelectItem>
-                  <SelectItem value="Nierealistyczny cel">Nierealistyczny cel</SelectItem>
-                  <SelectItem value="Zmiana priorytetu">Zmiana priorytetu</SelectItem>
-                  <SelectItem value="Inne">Inne</SelectItem>
+                  <SelectItem value="No time">No time</SelectItem>
+                  <SelectItem value="Unrealistic goal">Unrealistic goal</SelectItem>
+                  <SelectItem value="Priority change">Priority change</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsAbandonModalOpen(false)} disabled={submitting}>
-                Anuluj
+                Cancel
               </Button>
               <Button
                 onClick={handleAbandon}
                 disabled={submitting || !selectedReason}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
-                {submitting ? "Porzucanie..." : "Porzuć"}
+                {submitting ? "Abandoning..." : "Abandon"}
               </Button>
             </div>
           </div>

@@ -46,7 +46,7 @@ const createGoalProgressSchema = z.object({
       message: "Value must be a positive decimal number",
     }
   ),
-  notes: z.string().trim().max(2000, "Notes must not exceed 2000 characters").optional(),
+  notes: z.string().trim().max(150, "Notes must not exceed 150 characters").optional(),
 });
 
 /**

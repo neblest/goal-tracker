@@ -5,8 +5,8 @@ import GoalDetailsPage from "../../../components/goals/GoalDetailsPage";
 const { goalId } = Astro.params;
 ---
 
-<Layout title="Szczegóły celu">
-  <main aria-label="Szczegóły celu">
+<Layout title="Goal Details">
+  <main aria-label="Goal Details">
     <GoalDetailsPage client:load goalId={goalId} />
   </main>
 </Layout>

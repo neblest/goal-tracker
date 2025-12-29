@@ -104,14 +104,14 @@ export function GoalEditableFieldsSection({
       setSubmitting(true);
       try {
         await onSubmit(command);
-        setSuccessMessage("Zapisano zmiany.");
+        setSuccessMessage("Changes saved.");
       } catch (error) {
         if (error instanceof ApiError) {
           setFormError(error.message);
         } else if (error instanceof Error) {
           setFormError(error.message);
         } else {
-          setFormError("Nie udało się zapisać.");
+          setFormError("Failed to save.");
         }
       } finally {
         setSubmitting(false);
@@ -123,24 +123,24 @@ export function GoalEditableFieldsSection({
   return (
     <section
       className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
-      aria-label="Edycja danych celu"
+      aria-label="Edit goal details"
     >
       <header className="flex items-center justify-between gap-3 pb-4">
         <div>
-          <h3 className="text-base font-semibold text-[#4A3F35]">Edytuj cel</h3>
+          <h3 className="text-base font-semibold text-[#4A3F35]">Edit goal</h3>
           <p className="text-sm text-[#8B7E74]">
-            Nazwa, wartość docelowa i termin są edytowalne do pierwszego wpisu progresu.
+            Name, target value, and deadline are editable until the first progress entry.
           </p>
         </div>
         <div className="flex items-center gap-2">
           {goalStatus === "active" ? (
             isLocked ? (
-              <Button disabled variant="outline" size="sm" title="Edycja jest zablokowana z powodu trwającego progresu">
-                Edytuj
+              <Button disabled variant="outline" size="sm" title="Editing is locked due to ongoing progress">
+                Edit
               </Button>
             ) : !isEditing ? (
               <Button onClick={onToggleEditing} variant="outline" size="sm">
-                Edytuj
+                Edit
               </Button>
             ) : null
           ) : null}
@@ -151,9 +151,9 @@ export function GoalEditableFieldsSection({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor={`${baseId}-name`} className="text-[#4A3F35]">
-              Nazwa
+              Name
             </Label>
-            <span className="text-[11px] text-[#8B7E74]">{formState.name.trim().length}/500</span>
+            <span className="text-[11px] text-[#8B7E74]">{formState.name.trim().length}/50</span>
           </div>
           <Input
             id={`${baseId}-name`}
@@ -162,7 +162,7 @@ export function GoalEditableFieldsSection({
             disabled={isLocked || !isEditing}
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? `${baseId}-name-error` : undefined}
-            maxLength={500}
+            maxLength={50}
           />
           {errors.name ? (
             <p id={`${baseId}-name-error`} className="text-sm text-[#C17A6F]">
@@ -174,7 +174,7 @@ export function GoalEditableFieldsSection({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor={`${baseId}-target`} className="text-[#4A3F35]">
-              Wartość docelowa
+              Target value
             </Label>
             <Input
               id={`${baseId}-target`}
@@ -194,13 +194,15 @@ export function GoalEditableFieldsSection({
 
           <div className="space-y-2">
             <Label htmlFor={`${baseId}-deadline`} className="text-[#4A3F35]">
-              Termin
+              Deadline (dd.MM.yyyy)
             </Label>
             <Input
               id={`${baseId}-deadline`}
-              type="date"
+              type="text"
               value={formState.deadline}
               onChange={(event) => handleChange("deadline", event.target.value)}
+              placeholder="31.12.2024"
+              maxLength={10}
               disabled={isLocked || !isEditing}
               aria-invalid={Boolean(errors.deadline)}
               aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
@@ -239,7 +241,7 @@ export function GoalEditableFieldsSection({
             disabled={isLocked || !isEditing || submitting || !hasChanges}
             className="bg-[#D4A574] hover:bg-[#C9965E] text-white"
           >
-            {submitting ? "Zapisywanie..." : "Zapisz zmiany"}
+            {submitting ? "Saving..." : "Save changes"}
           </Button>
         </div>
       </form>

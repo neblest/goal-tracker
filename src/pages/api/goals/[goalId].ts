@@ -20,7 +20,7 @@ const goalIdSchema = z.string().uuid("Goal ID must be a valid UUID");
  */
 const updateGoalSchema = z
   .object({
-    name: z.string().min(1, "Name cannot be empty").optional(),
+    name: z.string().min(1, "Name cannot be empty").max(50, "Name cannot exceed 50 characters").optional(),
     target_value: z
       .string()
       .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
@@ -38,8 +38,8 @@ const updateGoalSchema = z
         { message: "Invalid date" }
       )
       .optional(),
-    reflection_notes: z.string().nullable().optional(),
-    ai_summary: z.string().nullable().optional(),
+    reflection_notes: z.string().max(1000, "Reflection notes cannot exceed 1000 characters").nullable().optional(),
+    ai_summary: z.string().max(5000, "AI summary cannot exceed 5000 characters").nullable().optional(),
   })
   .strict()
   .refine(

@@ -44,18 +44,22 @@ export function GoalAiSummarySection({
   }, [canEdit, draft, aiSummary, onSave]);
 
   return (
-    <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Podsumowanie">
+    <section className="rounded-xl border border-border/70 bg-card px-6 py-5 shadow-sm" aria-label="Summary">
       <header className="flex items-center justify-between pb-3">
-        <div>
-          <h3 className="text-base font-semibold">Podsumowanie</h3>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold">Summary</h3>
           <p className="text-sm text-muted-foreground">
-            Dostępne po zakończeniu celu. Automatyczne podsumowanie dostępne przy min. 3 wpisach postępu i uzupełnionej
-            notatce refleksyjnej.
+            Available after goal completion. Automatic summary available with min. 3 progress entries and completed
+            reflection note.
           </p>
         </div>
-        {!canEdit ? (
-          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Tylko po zakończeniu</span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {canEdit ? (
+            <span className="text-[11px] text-[#8B7E74]">{draft.length}/5000</span>
+          ) : (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Only after completion</span>
+          )}
+        </div>
       </header>
 
       {canEdit ? (
@@ -64,9 +68,10 @@ export function GoalAiSummarySection({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={handleBlur}
+            maxLength={5000}
             rows={4}
             className="resize-none"
-            aria-label="Podsumowanie"
+            aria-label="Summary"
           />
         </div>
       ) : null}

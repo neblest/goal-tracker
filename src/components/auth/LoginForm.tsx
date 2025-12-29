@@ -7,7 +7,7 @@ import { setAuthTokens } from "@/lib/auth/authTokens";
 import type { LoginCommand, LoginResponseDto } from "@/types";
 
 /**
- * Model stanu formularza logowania
+ * Login form state model
  */
 interface LoginFormVm {
   email: string;
@@ -15,7 +15,7 @@ interface LoginFormVm {
 }
 
 /**
- * Błędy walidacji formularza logowania
+ * Login form validation errors
  */
 interface LoginFormErrors {
   email?: string;
@@ -26,27 +26,27 @@ interface LoginFormErrors {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Walidacja formularza logowania
+ * Login form validation
  */
 function validateLoginForm(values: LoginFormVm): LoginFormErrors {
   const errors: LoginFormErrors = {};
 
   const trimmedEmail = values.email.trim();
   if (!trimmedEmail) {
-    errors.email = "Email jest wymagany";
+    errors.email = "Email is required";
   } else if (!EMAIL_REGEX.test(trimmedEmail)) {
-    errors.email = "Niepoprawny format adresu email";
+    errors.email = "Invalid email address format";
   }
 
   if (!values.password) {
-    errors.password = "Hasło jest wymagane";
+    errors.password = "Password is required";
   }
 
   return errors;
 }
 
 /**
- * Wywołanie API logowania
+ * Login API call
  */
 async function loginUser(command: LoginCommand): Promise<LoginResponseDto> {
   return apiFetchJson<LoginResponseDto>("/api/auth/login", {
@@ -96,31 +96,31 @@ export function LoginForm() {
       try {
         const response = await loginUser(command);
 
-        // Zapisz tokeny do localStorage
+        // Save tokens to localStorage
         setAuthTokens({
           access_token: response.data.access_token,
           refresh_token: response.data.refresh_token,
         });
 
-        // Sukces - przekierowanie do /app/goals
+        // Success - redirect to /app/goals
         window.location.href = "/app/goals";
       } catch (error) {
         if (error instanceof ApiError) {
           switch (error.status) {
             case 401:
-              setErrors({ form: "Niepoprawny email lub hasło" });
+              setErrors({ form: "Incorrect email or password" });
               break;
             case 429:
-              setErrors({ form: "Zbyt wiele prób. Spróbuj ponownie później." });
+              setErrors({ form: "Too many attempts. Please try again later." });
               break;
             case 400:
-              setErrors({ form: "Wystąpił błąd. Spróbuj ponownie." });
+              setErrors({ form: "An error occurred. Please try again." });
               break;
             default:
-              setErrors({ form: "Wystąpił błąd serwera. Spróbuj ponownie później." });
+              setErrors({ form: "A server error occurred. Please try again later." });
           }
         } else {
-          setErrors({ form: "Nie udało się połączyć z serwerem. Sprawdź połączenie." });
+          setErrors({ form: "Failed to connect to server. Check your connection." });
         }
       } finally {
         setIsSubmitting(false);
@@ -131,7 +131,7 @@ export function LoginForm() {
 
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
-      {/* Pole Email */}
+      {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor={`${baseId}-email`} className="text-sm font-medium text-[#4A3F35]">
           Email
@@ -142,7 +142,7 @@ export function LoginForm() {
           type="email"
           value={values.email}
           onChange={(event) => handleChange("email", event.target.value)}
-          placeholder="twoj@email.com"
+          placeholder="your@email.com"
           required
           aria-invalid={Boolean(errors.email)}
           aria-describedby={errors.email ? `${baseId}-email-error` : undefined}
@@ -154,10 +154,10 @@ export function LoginForm() {
         ) : null}
       </div>
 
-      {/* Pole Hasło */}
+      {/* Password Field */}
       <div className="space-y-2">
         <Label htmlFor={`${baseId}-password`} className="text-sm font-medium text-[#4A3F35]">
-          Hasło
+          Password
         </Label>
         <Input
           id={`${baseId}-password`}
@@ -177,7 +177,7 @@ export function LoginForm() {
         ) : null}
       </div>
 
-      {/* Banner błędu formularza */}
+      {/* Form error banner */}
       {errors.form ? (
         <div
           className="flex items-start gap-2 rounded-md border border-[#C17A6F]/40 bg-[#C17A6F]/10 px-3 py-2 text-sm text-[#C17A6F]"
@@ -188,16 +188,16 @@ export function LoginForm() {
         </div>
       ) : null}
 
-      {/* Przycisk submit */}
+      {/* Submit button */}
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Logowanie..." : "Zaloguj się"}
+        {isSubmitting ? "Logging in..." : "Log in"}
       </Button>
 
-      {/* Link do rejestracji */}
+      {/* Registration link */}
       <div className="text-center text-sm text-[#8B7E74]">
-        Nie masz konta?{" "}
+        Don't have an account?{" "}
         <a href="/register" className="font-medium text-[#D4A574] hover:underline">
-          Zarejestruj się
+          Sign up
         </a>
       </div>
     </form>

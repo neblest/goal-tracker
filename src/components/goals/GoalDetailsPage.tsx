@@ -56,9 +56,9 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       // Log error but continue with logout (clear tokens anyway)
       console.error("Logout API call failed:", error);
     } finally {
-      // Always clear tokens and redirect to login
+      // Always clear tokens and redirect to landing page
       clearAuthTokens();
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   }, []);
 
@@ -244,7 +244,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   }, [fetchGoal, state]);
 
   // Extract user display name (use email or fallback)
-  const userDisplayName = currentUser.user?.email ?? "Użytkowniku";
+  const userDisplayName = currentUser.user?.email ?? "User";
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#4A3F35]">
@@ -255,13 +255,13 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
       />
 
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-[#E5DDD5] shadow-sm">
-        <AppHeader title="Szczegóły celu" userDisplayName={userDisplayName} onLogout={handleLogout} />
+        <AppHeader title="Goal Details" userDisplayName={userDisplayName} onLogout={handleLogout} />
       </header>
 
       <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-8 pb-16 pt-6">
         {isRefreshing ? (
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
-            <Loader2 className="size-3 animate-spin" aria-hidden="true" /> Odświeżanie danych...
+            <Loader2 className="size-3 animate-spin" aria-hidden="true" /> Refreshing data...
           </div>
         ) : null}
 
@@ -320,7 +320,7 @@ function LoadingSection() {
   return (
     <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
       <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-      Ładowanie celu...
+      Loading goal...
     </div>
   );
 }
@@ -342,10 +342,10 @@ function SkeletonSection({ title }: { title?: string }) {
 function NotFoundSection({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border/70 bg-card px-4 py-4 text-sm text-muted-foreground">
-      <p className="font-semibold text-foreground">Nie znaleziono celu.</p>
-      <p>Cel mógł zostać usunięty lub nie masz do niego dostępu.</p>
+      <p className="font-semibold text-foreground">Goal not found.</p>
+      <p>The goal may have been deleted or you don't have access to it.</p>
       <div>
-        <Button onClick={onClose}>Wróć do listy</Button>
+        <Button onClick={onClose}>Back to list</Button>
       </div>
     </div>
   );
@@ -360,11 +360,11 @@ function ErrorSection({ message, onRetry }: { message: string; onRetry: () => vo
     >
       <AlertCircle className="size-4" aria-hidden="true" />
       <div className="flex-1">
-        <p className="font-semibold text-foreground">Błąd wczytywania danych</p>
+        <p className="font-semibold text-foreground">Error loading data</p>
         <p className="text-destructive">{message}</p>
       </div>
       <Button size="sm" variant="outline" onClick={onRetry}>
-        Spróbuj ponownie
+        Try again
       </Button>
     </div>
   );

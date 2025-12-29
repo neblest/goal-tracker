@@ -29,7 +29,7 @@ const updateProgressSchema = z
         }
       )
       .optional(),
-    notes: z.string().trim().max(2000, "Notes must not exceed 2000 characters").optional(),
+    notes: z.string().trim().max(150, "Notes must not exceed 150 characters").optional(),
   })
   .strict()
   .refine((data) => Object.keys(data).length > 0, {

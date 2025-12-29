@@ -100,7 +100,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
         } else if (error instanceof Error) {
           setFormError(error.message);
         } else {
-          setFormError("Nie udało się zapisać.");
+          setFormError("Failed to save.");
         }
       } finally {
         setSubmitting(false);
@@ -114,17 +114,17 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor={`${baseId}-name`} className="text-sm font-medium text-[#4A3F35]">
-            Nazwa
+            Name
           </Label>
-          <span className="text-[11px] text-[#8B7E74]">{values.name.trim().length}/500</span>
+          <span className="text-[11px] text-[#8B7E74]">{values.name.trim().length}/50</span>
         </div>
         <Input
           id={`${baseId}-name`}
           name="name"
           value={values.name}
           onChange={(event) => handleChange("name", event.target.value)}
-          placeholder="Nazwa celu"
-          maxLength={500}
+          placeholder="Goal name"
+          maxLength={50}
           required
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? `${baseId}-name-error` : undefined}
@@ -139,7 +139,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={`${baseId}-target`} className="text-sm font-medium text-[#4A3F35]">
-            Wartość docelowa
+            Target value
           </Label>
           <Input
             id={`${baseId}-target`}
@@ -147,7 +147,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
             inputMode="decimal"
             value={values.target_value}
             onChange={(event) => handleChange("target_value", event.target.value)}
-            placeholder="np. 1000"
+            placeholder="e.g. 1000"
             required
             aria-invalid={Boolean(errors.target_value)}
             aria-describedby={errors.target_value ? `${baseId}-target-error` : undefined}
@@ -161,14 +161,16 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
 
         <div className="space-y-2">
           <Label htmlFor={`${baseId}-deadline`} className="text-sm font-medium text-[#4A3F35]">
-            Termin (RRRR-MM-DD)
+            Deadline (dd.MM.yyyy)
           </Label>
           <Input
             id={`${baseId}-deadline`}
             name="deadline"
-            type="date"
+            type="text"
             value={values.deadline}
             onChange={(event) => handleChange("deadline", event.target.value)}
+            placeholder="31.12.2024"
+            maxLength={10}
             required
             aria-invalid={Boolean(errors.deadline)}
             aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
@@ -194,11 +196,11 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
         {onCancel ? (
           <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting || submitting}>
-            Anuluj
+            Cancel
           </Button>
         ) : null}
         <Button type="submit" disabled={isSubmitting || submitting || hasErrors}>
-          {isSubmitting || submitting ? "Zapisywanie..." : "Utwórz cel"}
+          {isSubmitting || submitting ? "Saving..." : "Create goal"}
         </Button>
       </div>
     </form>
