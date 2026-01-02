@@ -24,10 +24,7 @@ export function GoalReflectionNotesSection({ value, onSave }: GoalReflectionNote
   }, [draft, value, onSave]);
 
   return (
-    <section
-      className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
-      aria-label="Reflection note"
-    >
+    <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Reflection note">
       <header className="flex items-center justify-between pb-3">
         <div>
           <h3 className="text-base font-semibold text-[#4A3F35]">Reflection note</h3>

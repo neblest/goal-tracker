@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson } from "@/lib/api/apiFetchJson";
-import { formatDate, formatDateTime } from "@/lib/utils/dateFormat";
+import { formatDate, formatDateTime, fromISODateString } from "@/lib/utils/dateFormat";
 import type { GetGoalHistoryResponseDto, GoalHistoryItemDto, GoalStatus } from "@/types";
 
 interface GoalHistorySectionProps {
@@ -81,11 +81,11 @@ export function GoalHistorySection({ goalId, activeGoalId }: GoalHistorySectionP
                 <span className="text-sm text-[#8B7E74] flex-shrink-0">Progress {item.computed.current_value}</span>
                 <span className="text-sm text-[#8B7E74] flex-shrink-0">
                   {item.status === "active" ? (
-                    <>Deadline: {item.deadline}</>
+                    <>Deadline: {fromISODateString(item.deadline)}</>
                   ) : (
                     <>
                       Completion date:{" "}
-                      {item.updated_at ? formatDate(item.updated_at) : item.deadline}
+                      {item.updated_at ? formatDate(item.updated_at) : fromISODateString(item.deadline)}
                     </>
                   )}
                 </span>

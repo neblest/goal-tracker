@@ -296,11 +296,13 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
               />
             </div>
             <GoalAiSummarySection
+              goalId={goalId}
               status={state.goal.status}
               aiSummary={state.goal.ai_summary}
               entriesCount={state.goal.computed.entries_count}
               reflectionNotes={state.goal.reflection_notes}
               onSave={(value) => handleUpdateGoal({ ai_summary: value })}
+              onAiGenerated={(summary) => handleUpdateGoal({ ai_summary: summary })}
             />
           </div>
         ) : null}

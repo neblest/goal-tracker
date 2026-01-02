@@ -12,7 +12,7 @@ import type { GenerateAiSummaryResponseDto, UpdateAiSummaryResponseDto } from "@
  *
  * @param goalId - UUID of the goal
  * @param force - If true, regenerates summary even if it exists
- * @returns Generated summary and next goal suggestion
+ * @returns Generated summary (includes next goal suggestion with justification)
  * @throws ApiError with specific status codes:
  *   - 400: Invalid goal ID format
  *   - 401: Not authenticated
@@ -24,10 +24,7 @@ import type { GenerateAiSummaryResponseDto, UpdateAiSummaryResponseDto } from "@
  *   - 500: Internal server error
  *   - 502: AI provider error
  */
-export async function generateAiSummary(
-  goalId: string,
-  force: boolean = false
-): Promise<GenerateAiSummaryResponseDto> {
+export async function generateAiSummary(goalId: string, force = false): Promise<GenerateAiSummaryResponseDto> {
   return apiFetchJson<GenerateAiSummaryResponseDto>(`/api/goals/${goalId}/ai-summary/generate`, {
     method: "POST",
     headers: {

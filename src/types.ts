@@ -105,6 +105,7 @@ export type GoalPublicFieldsDto = WithDecimalStrings<
     | "status"
     | "reflection_notes"
     | "ai_summary"
+    | "ai_generation_attempts"
     | "abandonment_reason"
     | "created_at"
     | "updated_at"
@@ -318,9 +319,6 @@ export interface AiSummaryNextGoalSuggestionDto {
 export type GenerateAiSummaryResponseDto = ApiSuccessDto<{
   goal: Pick<GoalPublicFieldsDto, "id"> & {
     ai_summary: NonNullable<DbGoalRow["ai_summary"]>;
-  };
-  suggestions: {
-    next_goal: AiSummaryNextGoalSuggestionDto;
   };
 }>;
 

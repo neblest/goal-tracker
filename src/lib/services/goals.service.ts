@@ -95,7 +95,7 @@ export async function listGoals(
   let goalsQuery = supabase
     .from("goals")
     .select(
-      "id, parent_goal_id, name, target_value, deadline, status, reflection_notes, ai_summary, abandonment_reason, created_at, updated_at",
+      "id, parent_goal_id, name, target_value, deadline, status, reflection_notes, ai_summary, ai_generation_attempts, abandonment_reason, created_at, updated_at",
       { count: "exact" }
     )
     .eq("user_id", userId);
@@ -202,6 +202,7 @@ export async function listGoals(
       status: goal.status,
       reflection_notes: goal.reflection_notes,
       ai_summary: goal.ai_summary,
+      ai_generation_attempts: goal.ai_generation_attempts,
       abandonment_reason: goal.abandonment_reason,
       created_at: goal.created_at,
       updated_at: goal.updated_at,
@@ -238,7 +239,7 @@ export async function getGoalDetails(
   const { data: goal, error: goalError } = await supabase
     .from("goals")
     .select(
-      "id, parent_goal_id, name, target_value, deadline, status, reflection_notes, ai_summary, abandonment_reason, created_at, updated_at"
+      "id, parent_goal_id, name, target_value, deadline, status, reflection_notes, ai_summary, ai_generation_attempts, abandonment_reason, created_at, updated_at"
     )
     .eq("id", goalId)
     .eq("user_id", userId)
@@ -293,6 +294,7 @@ export async function getGoalDetails(
     status: goal.status,
     reflection_notes: goal.reflection_notes,
     ai_summary: goal.ai_summary,
+    ai_generation_attempts: goal.ai_generation_attempts,
     abandonment_reason: goal.abandonment_reason,
     created_at: goal.created_at,
     updated_at: goal.updated_at,

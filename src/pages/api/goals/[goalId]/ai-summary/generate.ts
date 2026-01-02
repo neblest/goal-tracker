@@ -23,15 +23,15 @@ const generateAiSummaryBodySchema = z.object({
 });
 
 /**
- * POST /api/goals/:goalId/ai-summary/generate - Generate AI summary for completed goal
+ * POST /api/goals/:goalId/ai-summary/generate - Generate AI summary for completed or abandoned goal
  *
- * Synchronously generates an AI summary for a completed goal (success or failure)
- * if it has at least 3 progress entries. Returns the generated summary and a
- * suggestion for the next goal.
+ * Synchronously generates an AI summary for a completed or abandoned goal
+ * if it has at least 3 progress entries. The summary includes a suggested next goal
+ * with justification embedded within the summary text.
  *
  * Business rules:
  * - Goal must exist and belong to the user
- * - Goal must be in 'completed_success' or 'completed_failure' status (409 if active/abandoned)
+ * - Goal must be in 'completed_success', 'completed_failure', or 'abandoned' status (409 if active)
  * - Goal must have at least 3 progress entries (412 if less)
  * - If ai_summary already exists and force !== true, returns existing summary
  * - If force === true, regenerates summary even if it exists
@@ -57,32 +57,29 @@ const generateAiSummaryBodySchema = z.object({
  * 5. Goal is active (409):
  *    POST /api/goals/<active_goal_uuid>/ai-summary/generate
  *
- * 6. Goal is abandoned (409):
- *    POST /api/goals/<abandoned_goal_uuid>/ai-summary/generate
- *
- * 7. Not enough progress entries (412):
+ * 6. Not enough progress entries (412):
  *    POST /api/goals/<completed_goal_uuid>/ai-summary/generate
  *    (Goal has < 3 progress entries)
  *
- * 8. Invalid body (422):
+ * 7. Invalid body (422):
  *    POST /api/goals/<completed_goal_uuid>/ai-summary/generate
  *    Body: { "force": "invalid" }
  *
- * 9. Unauthenticated (401):
+ * 8. Unauthenticated (401):
  *    No Authorization header or invalid token
  *
- * 10. AI provider error (502):
+ * 9. AI provider error (502):
  *    Openrouter API error or timeout
  *
- * 11. Rate limited (429):
+ * 10. Rate limited (429):
  *    Too many requests (>10 per minute)
  *
  * HTTP responses:
- * - 200: Summary generated successfully with { data: { goal: { id, ai_summary }, suggestions: { next_goal } } }
+ * - 200: Summary generated successfully with { data: { goal: { id, ai_summary } } }
  * - 400: Invalid UUID format
  * - 401: User not authenticated
  * - 404: Goal not found or not owned by user
- * - 409: Invalid goal state (active or abandoned)
+ * - 409: Invalid goal state (active)
  * - 412: Not enough data (less than 3 progress entries)
  * - 422: Validation error (invalid body)
  * - 429: Rate limited (too many requests)
@@ -228,7 +225,7 @@ export async function POST(context: APIContext): Promise<Response> {
             JSON.stringify({
               error: {
                 code: "invalid_goal_state",
-                message: "AI summary can only be generated for completed goals (not active or abandoned)",
+                message: "AI summary can only be generated for completed or abandoned goals (not active)",
               },
             } satisfies ApiErrorDto<"invalid_goal_state">),
             {

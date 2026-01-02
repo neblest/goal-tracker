@@ -7,6 +7,7 @@ import type {
   GoalStatus,
   SyncStatusesCommand,
 } from "../../types";
+import { generateAiSummary } from "./ai-summary.service";
 
 /**
  * Result of syncing a single goal's status
@@ -396,17 +397,126 @@ export async function completeGoal(
     throw new Error("database_error");
   }
 
-  // Step 6: Trigger AI summary generation if conditions are met
-  // Note: AI summary generation logic would be implemented here or via a separate service
-  // For now, we return the goal data as-is
-  // TODO: Implement AI summary generation trigger
+  // Step 6: Attempt to auto-generate AI summary
+  // Note: This runs after goal status is updated
+  // Errors are logged but do not affect the completion response
+  await tryGenerateAiSummary(supabase, userId, goalId);
+
+  // Refetch goal to get potentially updated ai_summary
+  const { data: finalGoal, error: finalFetchError } = await supabase
+    .from("goals")
+    .select("id, status, ai_summary, ai_generation_attempts")
+    .eq("id", goalId)
+    .eq("user_id", userId)
+    .single();
+
+  if (finalFetchError || !finalGoal) {
+    // Fallback to previously fetched data if final fetch fails
+    return {
+      id: updatedGoal.id,
+      status: updatedGoal.status,
+      ai_summary: updatedGoal.ai_summary,
+      ai_generation_attempts: updatedGoal.ai_generation_attempts,
+    };
+  }
 
   return {
-    id: updatedGoal.id,
-    status: updatedGoal.status,
-    ai_summary: updatedGoal.ai_summary,
-    ai_generation_attempts: updatedGoal.ai_generation_attempts,
+    id: finalGoal.id,
+    status: finalGoal.status,
+    ai_summary: finalGoal.ai_summary,
+    ai_generation_attempts: finalGoal.ai_generation_attempts,
   };
+}
+
+/**
+ * Attempts to auto-generate AI summary for a completed goal
+ *
+ * This function is called automatically when a goal transitions to
+ * completed_success or completed_failure status.
+ *
+ * Preconditions checked before calling AI API:
+ * - ai_summary must not already exist
+ * - entries_count must be >= 3
+ *
+ * Error handling:
+ * - Fails silently - logs errors but never throws
+ * - Goal completion succeeds regardless of AI generation outcome
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID who owns the goal
+ * @param goalId - Goal UUID that was just completed/failed
+ * @returns void - never throws errors
+ */
+async function tryGenerateAiSummary(supabase: SupabaseClient, userId: string, goalId: string): Promise<void> {
+  // eslint-disable-next-line no-console
+  console.log(`[AI Auto-Gen] Starting AI summary generation for goal ${goalId}`);
+
+  // Step 1: Fetch goal data with ai_summary
+  const { data: goal, error: fetchError } = await supabase
+    .from("goals")
+    .select("id, ai_summary")
+    .eq("id", goalId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (fetchError) {
+    // eslint-disable-next-line no-console
+    console.error(`[AI Auto-Gen] Failed to fetch goal ${goalId}:`, fetchError);
+    return;
+  }
+
+  if (!goal) {
+    // eslint-disable-next-line no-console
+    console.error(`[AI Auto-Gen] Goal ${goalId} not found`);
+    return;
+  }
+
+  // Step 2: Early exit if ai_summary already exists
+  if (goal.ai_summary) {
+    // eslint-disable-next-line no-console
+    console.log(`[AI Auto-Gen] Goal ${goalId} already has AI summary, skipping`);
+    return;
+  }
+
+  // Step 3: Count progress entries
+  const { count, error: countError } = await supabase
+    .from("goal_progress")
+    .select("*", { count: "exact", head: true })
+    .eq("goal_id", goalId);
+
+  if (countError) {
+    // eslint-disable-next-line no-console
+    console.error(`[AI Auto-Gen] Failed to count progress entries for goal ${goalId}:`, countError);
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(`[AI Auto-Gen] Goal ${goalId} has ${count} progress entries`);
+
+  // Step 4: Early exit if not enough progress entries
+  if (count === null || count < 3) {
+    // eslint-disable-next-line no-console
+    console.log(`[AI Auto-Gen] Goal ${goalId} has insufficient entries (${count}), skipping`);
+    return;
+  }
+
+  // Step 5: Call AI summary service
+  // eslint-disable-next-line no-console
+  console.log(`[AI Auto-Gen] Calling generateAiSummary for goal ${goalId}`);
+
+  try {
+    await generateAiSummary(supabase, userId, goalId, { force: false });
+    // eslint-disable-next-line no-console
+    console.log(`[AI Auto-Gen] Successfully generated AI summary for goal ${goalId}`);
+  } catch (error) {
+    // Log error but don't throw - goal completion must succeed
+    // eslint-disable-next-line no-console
+    console.error(`[AI Auto-Gen] Failed to auto-generate AI summary for goal ${goalId}:`, error);
+    if (error instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error(`[AI Auto-Gen] Error message: ${error.message}`);
+    }
+  }
 }
 
 /**
@@ -564,6 +674,15 @@ export async function syncStatuses(
       // eslint-disable-next-line no-console
       console.error(`Error updating goal ${update.id} status:`, updateError);
       throw new Error("database_error");
+    }
+  }
+
+  // Step E: Auto-generate AI summaries for goals that transitioned to completed_failure
+  // Note: Only failed goals can be auto-transitioned by syncStatuses (success requires manual)
+  // Run sequentially to avoid rate limiting and reduce server load
+  for (const update of updates) {
+    if (update.to === "completed_failure") {
+      await tryGenerateAiSummary(supabase, userId, update.id);
     }
   }
 

@@ -240,12 +240,7 @@ export function GoalMetricsSection({
                   {goalStatus === "active" ? (
                     <>Deadline: {formatDate(deadline)}</>
                   ) : (
-                    <>
-                      Completion date:{" "}
-                      {updatedAt
-                        ? formatDate(updatedAt)
-                        : formatDate(deadline)}
-                    </>
+                    <>Completion date: {updatedAt ? formatDate(updatedAt) : formatDate(deadline)}</>
                   )}
                 </div>
                 {goalStatus === "active" ? (
@@ -339,7 +334,12 @@ export function GoalMetricsSection({
                   </Button>
                 ) : (
                   <>
-                    <svg className="size-36" viewBox="0 0 160 160" role="img" aria-label={`Progress ${clampedPercent}%`}>
+                    <svg
+                      className="size-36"
+                      viewBox="0 0 160 160"
+                      role="img"
+                      aria-label={`Progress ${clampedPercent}%`}
+                    >
                       <defs>
                         <linearGradient id={`progressGradient-${baseId}`} x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#7B5E3A" />

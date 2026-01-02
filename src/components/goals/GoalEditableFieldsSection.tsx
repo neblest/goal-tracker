@@ -121,10 +121,7 @@ export function GoalEditableFieldsSection({
   );
 
   return (
-    <section
-      className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm"
-      aria-label="Edit goal details"
-    >
+    <section className="rounded-xl border border-[#E5DDD5] bg-white px-6 py-5 shadow-sm" aria-label="Edit goal details">
       <header className="flex items-center justify-between gap-3 pb-4">
         <div>
           <h3 className="text-base font-semibold text-[#4A3F35]">Edit goal</h3>
@@ -194,15 +191,13 @@ export function GoalEditableFieldsSection({
 
           <div className="space-y-2">
             <Label htmlFor={`${baseId}-deadline`} className="text-[#4A3F35]">
-              Deadline (dd.MM.yyyy)
+              Deadline
             </Label>
             <Input
               id={`${baseId}-deadline`}
-              type="text"
+              type="date"
               value={formState.deadline}
               onChange={(event) => handleChange("deadline", event.target.value)}
-              placeholder="31.12.2024"
-              maxLength={10}
               disabled={isLocked || !isEditing}
               aria-invalid={Boolean(errors.deadline)}
               aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}

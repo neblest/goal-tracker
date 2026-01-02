@@ -67,6 +67,9 @@ export async function generateChatCompletion(
 
   const model = options?.model || import.meta.env.OPENROUTER_MODEL || "anthropic/claude-3-haiku-20240307";
 
+  // eslint-disable-next-line no-console
+  console.log(`[OpenRouter] Generating completion with model: ${model}`);
+
   const requestBody: OpenrouterChatCompletionRequest = {
     model,
     messages,
@@ -100,9 +103,12 @@ export async function generateChatCompletion(
     if (!response.ok) {
       const errorText = await response.text();
       // eslint-disable-next-line no-console
-      console.error(`Openrouter API error (${response.status}):`, errorText);
+      console.error(`[OpenRouter] API error (${response.status}):`, errorText);
       throw new Error("ai_provider_error");
     }
+
+    // eslint-disable-next-line no-console
+    console.log(`[OpenRouter] Successfully received response`);
 
     const data = (await response.json()) as OpenrouterChatCompletionResponse;
 

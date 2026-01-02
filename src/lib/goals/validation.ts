@@ -36,18 +36,18 @@ export function validateTargetValue(value: string) {
 }
 
 export function validateDeadlineFuture(value: string) {
-  if (!/^\d{2}\.\d{2}\.\d{4}$/.test(value)) return "Deadline must be in dd.MM.yyyy format.";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Deadline must be in YYYY-MM-DD format.";
 
-  const parts = value.split(".");
-  const day = parseInt(parts[0], 10);
+  const parts = value.split("-");
+  const year = parseInt(parts[0], 10);
   const month = parseInt(parts[1], 10);
-  const year = parseInt(parts[2], 10);
+  const day = parseInt(parts[2], 10);
 
-  if (isNaN(day) || isNaN(month) || isNaN(year)) return "Invalid date.";
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return "Invalid date.";
 
   const parsed = new Date(year, month - 1, day);
 
-  // Validate the date is actually valid (e.g., not 31.02.2024)
+  // Validate the date is actually valid (e.g., not 2024-02-31)
   if (parsed.getDate() !== day || parsed.getMonth() !== month - 1 || parsed.getFullYear() !== year) {
     return "Invalid date.";
   }

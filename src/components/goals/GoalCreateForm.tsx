@@ -161,16 +161,14 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
 
         <div className="space-y-2">
           <Label htmlFor={`${baseId}-deadline`} className="text-sm font-medium text-[#4A3F35]">
-            Deadline (dd.MM.yyyy)
+            Deadline
           </Label>
           <Input
             id={`${baseId}-deadline`}
             name="deadline"
-            type="text"
+            type="date"
             value={values.deadline}
             onChange={(event) => handleChange("deadline", event.target.value)}
-            placeholder="31.12.2024"
-            maxLength={10}
             required
             aria-invalid={Boolean(errors.deadline)}
             aria-describedby={errors.deadline ? `${baseId}-deadline-error` : undefined}
