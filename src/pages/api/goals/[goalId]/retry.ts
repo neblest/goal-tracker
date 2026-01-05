@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 import type { RetryGoalCommand, RetryGoalResponseDto, ApiErrorDto } from "../../../../types";
 import { retryGoal } from "../../../../lib/services/goal-lifecycle.service";
+import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
@@ -143,29 +144,15 @@ export async function POST(context: APIContext) {
     const command = commandParseResult.data as RetryGoalCommand;
 
     // Step 3: Authenticate user
-    const supabase = context.locals.supabase;
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthorized",
-            message: "Authentication required",
-          },
-        } satisfies ApiErrorDto<"unauthorized">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    const authResult = await getUserFromRequest(context);
+    if (!authResult.success) {
+      return authResult.response;
     }
 
+    const supabase = context.locals.supabase;
+
     // Step 4: Call service to retry goal
-    const newGoal = await retryGoal(supabase, user.id, validatedGoalId, command);
+    const newGoal = await retryGoal(supabase, authResult.userId, validatedGoalId, command);
 
     // Step 5: Return success response
     return new Response(

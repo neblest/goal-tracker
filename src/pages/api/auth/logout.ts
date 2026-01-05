@@ -19,27 +19,19 @@ export async function POST(context: APIContext) {
   try {
     const supabase = context.locals.supabase;
 
-    // Krok 1: Ekstrakcja i walidacja nagłówka Authorization
-    const authHeader = context.request.headers.get("Authorization");
+    // Krok 1: Get access token from cookie
+    const cookieHeader = context.request.headers.get("Cookie");
+    let accessToken: string | null = null;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "not_authenticated",
-            message: "Authentication required",
-          },
-        } satisfies ApiErrorDto<"not_authenticated">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(";").map((c) => c.trim());
+      const accessTokenCookie = cookies.find((c) => c.startsWith("access_token="));
+      if (accessTokenCookie) {
+        accessToken = accessTokenCookie.split("=")[1];
+      }
     }
 
-    const token = authHeader.substring(7); // Remove "Bearer "
-
-    if (!token) {
+    if (!accessToken) {
       return new Response(
         JSON.stringify({
           error: {
@@ -58,7 +50,7 @@ export async function POST(context: APIContext) {
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser(token);
+    } = await supabase.auth.getUser(accessToken);
 
     if (userError || !user) {
       return new Response(
@@ -94,8 +86,26 @@ export async function POST(context: APIContext) {
       );
     }
 
-    // Krok 4: Zwrócenie odpowiedzi 204 No Content
-    return new Response(null, { status: 204 });
+    // Krok 4: Clear cookies and return 204 No Content
+    const headers = new Headers();
+
+    // Determine if we should use Secure flag (only when using HTTPS)
+    const isSecure = context.request.url.startsWith('https://');
+    const secureFlag = isSecure ? "Secure; " : "";
+
+    // Clear access token cookie
+    headers.append(
+      "Set-Cookie",
+      `access_token=; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=0`
+    );
+
+    // Clear refresh token cookie
+    headers.append(
+      "Set-Cookie",
+      `refresh_token=; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=0`
+    );
+
+    return new Response(null, { status: 204, headers });
   } catch (error) {
     // Obsługa nieoczekiwanych błędów
     console.error("Unexpected error in POST /api/auth/logout:", error);

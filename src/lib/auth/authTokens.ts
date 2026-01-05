@@ -1,8 +1,17 @@
 /**
- * Authentication tokens management
+ * Authentication tokens management (DEPRECATED)
  *
- * Handles storage and retrieval of access_token and refresh_token
- * in localStorage for client-side authentication.
+ * @deprecated This file is deprecated. The application now uses HttpOnly cookies
+ * for token storage instead of localStorage. HttpOnly cookies are more secure
+ * as they cannot be accessed by JavaScript, preventing XSS attacks.
+ *
+ * DO NOT USE these functions in new code. They are kept for backwards compatibility
+ * but will be removed in a future version.
+ *
+ * Authentication is now handled via:
+ * - Backend: Sets HttpOnly cookies in /api/auth/login and /api/auth/register
+ * - Frontend: Cookies are automatically sent with requests (credentials: 'include')
+ * - Validation: getUserFromRequest() reads tokens from cookies
  */
 
 const ACCESS_TOKEN_KEY = "auth_access_token";

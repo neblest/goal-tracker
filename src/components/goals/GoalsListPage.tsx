@@ -19,7 +19,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { cn } from "@/lib/utils";
-import { clearAuthTokens } from "@/lib/auth/authTokens";
 import { apiFetchJson } from "@/lib/api/apiFetchJson";
 import type { GoalStatus } from "@/types";
 import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
@@ -58,11 +57,10 @@ export default function GoalsListPage() {
         method: "POST",
       });
     } catch (error) {
-      // Log error but continue with logout (clear tokens anyway)
+      // Log error but continue with logout
       console.error("Logout API call failed:", error);
     } finally {
-      // Always clear tokens and redirect to landing page
-      clearAuthTokens();
+      // Cookies are cleared by server, just redirect to landing page
       window.location.href = "/";
     }
   }, []);

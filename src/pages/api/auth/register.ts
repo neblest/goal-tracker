@@ -145,7 +145,7 @@ export async function POST(context: APIContext) {
       );
     }
 
-    // Step 3: Return success response
+    // Step 3: Return success response and set cookies if session exists
     const response: RegisterResponseDto = {
       data: {
         user: {
@@ -155,9 +155,35 @@ export async function POST(context: APIContext) {
       },
     };
 
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+
+    // If session exists (auto-login after registration), set HttpOnly cookies
+    if (data.session) {
+      const accessTokenMaxAge = 60 * 60; // 1 hour in seconds
+      const refreshTokenMaxAge = 60 * 60 * 24 * 7; // 7 days in seconds
+
+      // Determine if we should use Secure flag (only when using HTTPS)
+      const isSecure = context.request.url.startsWith('https://');
+      const secureFlag = isSecure ? "Secure; " : "";
+
+      // Access token cookie
+      headers.append(
+        "Set-Cookie",
+        `access_token=${data.session.access_token}; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=${accessTokenMaxAge}`
+      );
+
+      // Refresh token cookie
+      headers.append(
+        "Set-Cookie",
+        `refresh_token=${data.session.refresh_token}; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=${refreshTokenMaxAge}`
+      );
+    }
+
     return new Response(JSON.stringify(response), {
       status: 201,
-      headers: { "Content-Type": "application/json" },
+      headers,
     });
   } catch (error) {
     console.error("Unexpected error in POST /api/auth/register:", error);

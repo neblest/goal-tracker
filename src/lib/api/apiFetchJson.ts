@@ -1,5 +1,3 @@
-import { getAccessToken, clearAuthTokens } from "@/lib/auth/authTokens";
-
 export class ApiError extends Error {
   status: number;
   body?: unknown;
@@ -17,11 +15,8 @@ function buildHeaders(init?: RequestInit): HeadersInit {
     Accept: "application/json",
   };
 
-  // Add Authorization header if access token exists
-  const accessToken = getAccessToken();
-  if (accessToken) {
-    baseHeaders.Authorization = `Bearer ${accessToken}`;
-  }
+  // No need to add Authorization header - cookies are sent automatically
+  // with credentials: 'include'
 
   if (init?.body && !(init.headers as HeadersInit)?.["Content-Type"]) {
     return { ...baseHeaders, "Content-Type": "application/json", ...init?.headers };
@@ -34,6 +29,7 @@ export async function apiFetchJson<T>(input: RequestInfo | URL, init?: RequestIn
   const response = await fetch(input, {
     ...init,
     headers: buildHeaders(init),
+    credentials: "include", // Important: send cookies with request
   });
 
   const text = await response.text();
@@ -48,8 +44,8 @@ export async function apiFetchJson<T>(input: RequestInfo | URL, init?: RequestIn
   }
 
   if (response.status === 401 && typeof window !== "undefined") {
-    // Clear tokens on 401 (unauthorized/expired token)
-    clearAuthTokens();
+    // Redirect to login on 401 (unauthorized/expired token)
+    // No need to clear cookies - they are HttpOnly and managed by server
     window.location.href = "/login";
   }
 

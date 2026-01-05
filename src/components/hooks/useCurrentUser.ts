@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
-import { hasAuthTokens } from "@/lib/auth/authTokens";
 import type { MeResponseDto, AuthUserDto } from "@/types";
 
 export interface UseCurrentUserResult {
@@ -12,7 +11,7 @@ export interface UseCurrentUserResult {
 /**
  * Hook for fetching current authenticated user from /api/auth/me
  *
- * Automatically fetches user data on mount if auth tokens exist.
+ * Automatically fetches user data on mount using HttpOnly cookies.
  * Returns loading state, user data, and error information.
  */
 export function useCurrentUser(): UseCurrentUserResult {
@@ -21,13 +20,6 @@ export function useCurrentUser(): UseCurrentUserResult {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Skip if no auth tokens present
-    if (!hasAuthTokens()) {
-      setIsLoading(false);
-      setUser(null);
-      return;
-    }
-
     let isMounted = true;
 
     const fetchUser = async () => {

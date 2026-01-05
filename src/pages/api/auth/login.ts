@@ -129,7 +129,7 @@ export async function POST(context: APIContext) {
       );
     }
 
-    // Step 3: Return success response with tokens
+    // Step 3: Set HttpOnly cookies and return success response
     const response: LoginResponseDto = {
       data: {
         access_token: data.session.access_token,
@@ -141,9 +141,34 @@ export async function POST(context: APIContext) {
       },
     };
 
+    // Calculate cookie expiration (access token typically expires in 1 hour)
+    const accessTokenMaxAge = 60 * 60; // 1 hour in seconds
+    const refreshTokenMaxAge = 60 * 60 * 24 * 7; // 7 days in seconds
+
+    // Set HttpOnly cookies for tokens
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+
+    // Determine if we should use Secure flag (only when using HTTPS)
+    const isSecure = context.request.url.startsWith('https://');
+    const secureFlag = isSecure ? "Secure; " : "";
+
+    // Access token cookie
+    headers.append(
+      "Set-Cookie",
+      `access_token=${data.session.access_token}; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=${accessTokenMaxAge}`
+    );
+
+    // Refresh token cookie
+    headers.append(
+      "Set-Cookie",
+      `refresh_token=${data.session.refresh_token}; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=${refreshTokenMaxAge}`
+    );
+
     return new Response(JSON.stringify(response), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers,
     });
   } catch (error) {
     console.error("Unexpected error in POST /api/auth/login:", error);

@@ -1,82 +1,39 @@
 import type { APIContext } from "astro";
 import type { ApiErrorDto, MeResponseDto } from "../../../types";
+import { getUserFromRequest } from "../../../lib/auth/getUserFromRequest";
 
 export const prerender = false;
 
 /**
  * GET /api/auth/me - Return current authenticated user identity
  *
+ * Uses HttpOnly cookies for authentication.
+ *
  * Test scenarios:
  * 1. Success (200):
  *    GET /api/auth/me
- *    Headers: Authorization: Bearer <valid_token>
+ *    (with valid access_token cookie)
  *
- * 2. No authorization header (401):
+ * 2. No cookie (401):
  *    GET /api/auth/me
- *    (no Authorization header)
+ *    (no access_token cookie)
  *
- * 3. Invalid token format (401):
- *    Headers: Authorization: InvalidFormat
- *
- * 4. Expired/invalid token (401):
- *    Headers: Authorization: Bearer <expired_or_invalid_token>
+ * 3. Expired/invalid token (401):
+ *    GET /api/auth/me
+ *    (with expired or invalid access_token cookie)
  */
 export async function GET(context: APIContext) {
   try {
-    // Step 1: Extract and validate Authorization header
-    const authHeader = context.request.headers.get("Authorization");
+    // Step 1: Authenticate user from HttpOnly cookie
+    const authResult = await getUserFromRequest(context);
 
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthorized",
-            message: "Authentication required",
-          },
-        } satisfies ApiErrorDto<"unauthorized">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    if (!authResult.success) {
+      return authResult.response;
     }
 
-    if (!authHeader.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthorized",
-            message: "Invalid authorization header format",
-          },
-        } satisfies ApiErrorDto<"unauthorized">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const token = authHeader.substring(7); // Remove "Bearer "
-
-    if (!token) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "unauthorized",
-            message: "Authentication token is required",
-          },
-        } satisfies ApiErrorDto<"unauthorized">),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // Step 2: Verify token with Supabase Auth
+    // Step 2: Get user data
     const supabase = context.locals.supabase;
-
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await supabase.auth.getUser();
 
     if (error || !data.user) {
       return new Response(

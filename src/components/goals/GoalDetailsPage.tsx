@@ -12,7 +12,6 @@ import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/button";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
-import { clearAuthTokens } from "@/lib/auth/authTokens";
 import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 import type {
   GetGoalHistoryResponseDto,
@@ -53,11 +52,10 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
         method: "POST",
       });
     } catch (error) {
-      // Log error but continue with logout (clear tokens anyway)
+      // Log error but continue with logout
       console.error("Logout API call failed:", error);
     } finally {
-      // Always clear tokens and redirect to landing page
-      clearAuthTokens();
+      // Cookies are cleared by server, just redirect to landing page
       window.location.href = "/";
     }
   }, []);
