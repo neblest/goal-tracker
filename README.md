@@ -35,6 +35,10 @@ The project is built with a modern tech stack focused on performance, developer 
 **AI:**
 - **[OpenRouter.ai](https://openrouter.ai/)**: A service to access a wide range of AI models for generating summaries and suggestions.
 
+**Testing:**
+- **[Vitest](https://vitest.dev/)**: For unit and integration testing.
+- **[Playwright](https://playwright.dev/)**: For end-to-end testing.
+
 **CI/CD & Hosting:**
 - **[GitHub Actions](https://github.com/features/actions)**: For continuous integration and deployment pipelines.
 - **[DigitalOcean](https://www.digitalocean.com/)**: For hosting the application via Docker images.
