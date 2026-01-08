@@ -46,7 +46,13 @@ export async function apiFetchJson<T>(input: RequestInfo | URL, init?: RequestIn
   if (response.status === 401 && typeof window !== "undefined") {
     // Redirect to login on 401 (unauthorized/expired token)
     // No need to clear cookies - they are HttpOnly and managed by server
-    window.location.href = "/login";
+    // Skip redirect if user is already on login/register page
+    const currentPath = window.location.pathname;
+    const isAuthPage = currentPath === "/login" || currentPath === "/register";
+
+    if (!isAuthPage) {
+      window.location.href = "/login";
+    }
   }
 
   if (!response.ok) {

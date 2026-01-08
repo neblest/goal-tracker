@@ -123,10 +123,12 @@ export function RegisterForm() {
           setErrors((prev) => ({ ...prev, email: "This email address is already in use." }));
         } else if (error.status === 429) {
           setErrors((prev) => ({ ...prev, form: "Too many attempts. Please try again in a moment." }));
+        } else if (error.status === 400) {
+          setErrors((prev) => ({ ...prev, form: error.message || "Invalid data. Please check your input." }));
         } else if (error.status >= 500) {
           setErrors((prev) => ({ ...prev, form: "A server error occurred. Please try again later." }));
         } else {
-          setErrors((prev) => ({ ...prev, form: error.message || "Invalid data." }));
+          setErrors((prev) => ({ ...prev, form: error.message || "An error occurred. Please try again." }));
         }
       } else {
         setErrors((prev) => ({ ...prev, form: "Failed to connect to server. Check your internet connection." }));

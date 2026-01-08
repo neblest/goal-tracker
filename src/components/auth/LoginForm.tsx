@@ -101,14 +101,12 @@ export function LoginForm() {
       } catch (error) {
         if (error instanceof ApiError) {
           switch (error.status) {
+            case 400:
             case 401:
               setErrors({ form: "Incorrect email or password" });
               break;
             case 429:
               setErrors({ form: "Too many attempts. Please try again later." });
-              break;
-            case 400:
-              setErrors({ form: "An error occurred. Please try again." });
               break;
             default:
               setErrors({ form: "A server error occurred. Please try again later." });
