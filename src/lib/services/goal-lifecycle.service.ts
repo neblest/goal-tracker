@@ -524,9 +524,11 @@ async function tryGenerateAiSummary(supabase: SupabaseClient, userId: string, go
  * Uses local timezone of the server process
  */
 function getEndOfDeadlineDay(deadlineStr: string): Date {
-  const deadline = new Date(deadlineStr);
-  // Set to end of day in local timezone
-  deadline.setHours(23, 59, 59, 999);
+  // Parse date string as local date (YYYY-MM-DD format)
+  // Using Date constructor with separate components ensures local timezone interpretation
+  const [year, month, day] = deadlineStr.split("-").map(Number);
+  // Month is 0-indexed in Date constructor
+  const deadline = new Date(year, month - 1, day, 23, 59, 59, 999);
   return deadline;
 }
 
