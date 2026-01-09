@@ -90,20 +90,14 @@ export async function POST(context: APIContext) {
     const headers = new Headers();
 
     // Determine if we should use Secure flag (only when using HTTPS)
-    const isSecure = context.request.url.startsWith('https://');
+    const isSecure = context.request.url.startsWith("https://");
     const secureFlag = isSecure ? "Secure; " : "";
 
     // Clear access token cookie
-    headers.append(
-      "Set-Cookie",
-      `access_token=; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=0`
-    );
+    headers.append("Set-Cookie", `access_token=; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=0`);
 
     // Clear refresh token cookie
-    headers.append(
-      "Set-Cookie",
-      `refresh_token=; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=0`
-    );
+    headers.append("Set-Cookie", `refresh_token=; HttpOnly; ${secureFlag}SameSite=Strict; Path=/; Max-Age=0`);
 
     return new Response(null, { status: 204, headers });
   } catch (error) {

@@ -151,7 +151,7 @@ export async function POST(context: APIContext) {
     });
 
     // Determine if we should use Secure flag (only when using HTTPS)
-    const isSecure = context.request.url.startsWith('https://');
+    const isSecure = context.request.url.startsWith("https://");
     const secureFlag = isSecure ? "Secure; " : "";
 
     // Access token cookie

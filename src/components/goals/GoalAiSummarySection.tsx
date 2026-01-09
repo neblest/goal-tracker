@@ -76,7 +76,8 @@ export function GoalAiSummarySection({
         <div className="flex-1">
           <h3 className="text-base font-semibold">Summary</h3>
           <p className="text-sm text-muted-foreground">
-            Available after goal completion or abandonment. AI summary can be generated when you have at least 3 progress entries.
+            Available after goal completion or abandonment. AI summary can be generated when you have at least 3
+            progress entries.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -106,7 +107,9 @@ export function GoalAiSummarySection({
               <span className="text-[11px] text-[#8B7E74]">{draft.length}/5000</span>
             </>
           ) : (
-            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">After completion/abandonment</span>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+              After completion/abandonment
+            </span>
           )}
         </div>
       </header>

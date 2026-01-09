@@ -276,6 +276,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
               onClick={() => setIsCreateModalOpen(true)}
               disabled={Boolean(pendingId)}
               className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
+              data-test-id="add-progress-button"
             >
               <Plus className="size-4" aria-hidden="true" />
               Add Progress
@@ -550,7 +551,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
           }
         }}
       >
-        <DialogContent>
+        <DialogContent data-test-id="create-progress-dialog">
           <DialogHeader>
             <DialogTitle>Add progress entry</DialogTitle>
             <DialogDescription>Add a new progress entry for this goal.</DialogDescription>
@@ -578,8 +579,13 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                   inputMode="decimal"
                   aria-invalid={Boolean(createError)}
                   className="rounded-sm [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  data-test-id="create-progress-value-input"
                 />
-                {createError && <p className="text-sm text-[#C17A6F] mt-1">{createError}</p>}
+                {createError && (
+                  <p className="text-sm text-[#C17A6F] mt-1" data-test-id="create-progress-error-message">
+                    {createError}
+                  </p>
+                )}
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
@@ -595,6 +601,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                   maxLength={150}
                   rows={4}
                   className="resize-none rounded-sm"
+                  data-test-id="create-progress-notes-input"
                 />
               </div>
             </div>
@@ -608,10 +615,16 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                   setCreateError(null);
                 }}
                 disabled={Boolean(pendingId)}
+                data-test-id="create-progress-cancel-button"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!canSubmit} className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
+              <Button
+                type="submit"
+                disabled={!canSubmit}
+                className="gap-2 bg-[#D4A574] hover:bg-[#C9965E] text-white"
+                data-test-id="create-progress-submit-button"
+              >
                 {pendingId === "new" ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 ) : (

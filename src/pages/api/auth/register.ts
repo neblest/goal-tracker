@@ -165,7 +165,7 @@ export async function POST(context: APIContext) {
       const refreshTokenMaxAge = 60 * 60 * 24 * 7; // 7 days in seconds
 
       // Determine if we should use Secure flag (only when using HTTPS)
-      const isSecure = context.request.url.startsWith('https://');
+      const isSecure = context.request.url.startsWith("https://");
       const secureFlag = isSecure ? "Secure; " : "";
 
       // Access token cookie
