@@ -50,7 +50,6 @@ export function RegisterForm() {
     const fieldName = name as keyof RegisterFormErrors;
     if (errors[fieldName]) {
       setErrors((prev) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [fieldName]: _removed, ...rest } = prev;
         return rest;
       });
@@ -96,7 +95,6 @@ export function RegisterForm() {
     // Clear general error
     if (errors.form) {
       setErrors((prev) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { form: _removed, ...rest } = prev;
         return rest;
       });

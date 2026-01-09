@@ -289,7 +289,19 @@ export function useGoalsList(): GoalsListViewModel {
         retry,
       },
     }),
-    [loadMore, queryState.order, queryState.sort, queryState.status, rawSearch, retry, state]
+    [
+      loadMore,
+      queryState.order,
+      queryState.sort,
+      queryState.status,
+      rawSearch,
+      retry,
+      state,
+      setSearch,
+      setSort,
+      setOrder,
+      setStatus,
+    ]
   );
 
   return viewModel;

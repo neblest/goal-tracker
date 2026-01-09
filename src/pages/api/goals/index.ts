@@ -150,7 +150,6 @@ export async function GET(context: APIContext) {
       }
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("GET /api/goals error:", error);
 
     // Handle specific service errors
@@ -329,7 +328,6 @@ export async function POST(context: APIContext) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Unexpected error in POST /api/goals:", error);
     return new Response(
       JSON.stringify({

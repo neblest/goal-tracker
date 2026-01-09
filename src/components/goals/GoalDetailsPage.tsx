@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowLeft, Loader2, TimerReset } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { CongratulationsAnimation } from "@/components/goals/CongratulationsAnimation";
 import GoalAiSummarySection from "@/components/goals/GoalAiSummarySection";
-import GoalDetailsHeader from "@/components/goals/GoalDetailsHeader";
 import GoalHistorySection from "@/components/goals/GoalHistorySection";
 import GoalMetricsSection from "@/components/goals/GoalMetricsSection";
 import GoalProgressSection from "@/components/goals/GoalProgressSection";
@@ -17,7 +16,6 @@ import type {
   GetGoalHistoryResponseDto,
   GetGoalResponseDto,
   GoalDetailsDto,
-  GoalStatus,
   UpdateGoalCommand,
   UpdateGoalResponseDto,
 } from "@/types";
@@ -38,7 +36,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [modalInitialValues, setModalInitialValues] = useState<any>({});
+  const [modalInitialValues, setModalInitialValues] = useState<Record<string, unknown>>({});
   const [isYoungestInChain, setIsYoungestInChain] = useState(true);
 
   const handleBack = useCallback(() => {
@@ -60,7 +58,7 @@ export default function GoalDetailsPage({ goalId }: GoalDetailsPageProps) {
     }
   }, []);
 
-  const handleCreateGoal = useCallback((initialValues: any = {}) => {
+  const handleCreateGoal = useCallback((initialValues: Record<string, unknown> = {}) => {
     setModalInitialValues(initialValues);
     setIsCreateModalOpen(true);
   }, []);
@@ -343,7 +341,7 @@ function NotFoundSection({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border/70 bg-card px-4 py-4 text-sm text-muted-foreground">
       <p className="font-semibold text-foreground">Goal not found.</p>
-      <p>The goal may have been deleted or you don't have access to it.</p>
+      <p>The goal may have been deleted or you don&apos;t have access to it.</p>
       <div>
         <Button onClick={onClose}>Back to list</Button>
       </div>

@@ -1,16 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
-import {
-  CalendarClock,
-  CheckCircle2,
-  CircleAlert,
-  CircleDashed,
-  Loader2,
-  LogOut,
-  Plus,
-  Search,
-  TimerReset,
-  XCircle,
-} from "lucide-react";
+import { CalendarClock, CheckCircle2, CircleAlert, Loader2, Search, TimerReset, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppHeader } from "@/components/ui/AppHeader";
-import { cn } from "@/lib/utils";
 import { apiFetchJson } from "@/lib/api/apiFetchJson";
 import type { GoalStatus } from "@/types";
 import GoalCreateModalPage from "@/components/goals/GoalCreateModalPage";
@@ -48,7 +36,7 @@ export default function GoalsListPage() {
   const goals = useGoalsList();
   const currentUser = useCurrentUser();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [modalInitialValues, setModalInitialValues] = useState<any>({});
+  const [modalInitialValues, setModalInitialValues] = useState<Record<string, unknown>>({});
 
   const handleLogout = useCallback(async () => {
     try {
@@ -145,30 +133,34 @@ function GoalsListControls({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <label className="group relative">
-          <div className="relative rounded-xl bg-white border border-[#E5DDD5] hover:border-[#D4A574] focus-within:border-[#D4A574] focus-within:ring-2 focus-within:ring-[#D4A574]/20 transition-all duration-200">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#8B7E74]" aria-hidden="true" />
-            <Input
-              aria-label="Search goal"
-              placeholder="Search by name"
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-              maxLength={200}
-              className="border-0 bg-transparent pr-16 shadow-none outline-none ring-0 focus-visible:ring-0 text-[#4A3F35] placeholder:text-[#A89F94]"
-              style={{ paddingLeft: "40px" }}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#8B7E74]">
-              {search.trim().length}/200
-            </span>
-          </div>
+        <label htmlFor="goal-search" className="sr-only">
+          Search goal
         </label>
+        <div className="relative rounded-xl bg-white border border-[#E5DDD5] hover:border-[#D4A574] focus-within:border-[#D4A574] focus-within:ring-2 focus-within:ring-[#D4A574]/20 transition-all duration-200">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#8B7E74]" aria-hidden="true" />
+          <Input
+            id="goal-search"
+            aria-label="Search goal"
+            placeholder="Search by name"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            maxLength={200}
+            className="border-0 bg-transparent pr-16 shadow-none outline-none ring-0 focus-visible:ring-0 text-[#4A3F35] placeholder:text-[#A89F94]"
+            style={{ paddingLeft: "40px" }}
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#8B7E74]">
+            {search.trim().length}/200
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Status</label>
+          <label htmlFor="goal-status" className="block text-sm font-medium mb-2 text-[#4A3F35]">
+            Status
+          </label>
           <Select value={status} onValueChange={(value) => onStatusChange(value as GoalStatus)}>
-            <SelectTrigger aria-label="Filter by status">
+            <SelectTrigger id="goal-status" aria-label="Filter by status">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -182,10 +174,12 @@ function GoalsListControls({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[#4A3F35]">Sort</label>
+          <label htmlFor="goal-sort" className="block text-sm font-medium mb-2 text-[#4A3F35]">
+            Sort
+          </label>
           <div className="grid grid-cols-2 gap-2">
             <Select value={sort} onValueChange={(value) => onSortChange(value as "created_at" | "deadline")}>
-              <SelectTrigger aria-label="Sort">
+              <SelectTrigger id="goal-sort" aria-label="Sort">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
@@ -264,7 +258,7 @@ function GoalCard({ item }: { item: GoalCardVm }) {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (clampedPercent / 100) * circumference;
 
-  const statusVariant = useMemo(() => {
+  const _statusVariant = useMemo(() => {
     switch (item.status) {
       case "completed_success":
         return "default" as const;
@@ -398,7 +392,7 @@ function EmptyState({ onCreateGoal }: { onCreateGoal: () => void }) {
     >
       <p className="text-lg font-semibold text-[#4A3F35]">No goals</p>
       <p className="max-w-md text-sm text-[#8B7E74]">
-        You don't have any goals yet. Create your first one to start tracking your progress.
+        You don&apos;t have any goals yet. Create your first one to start tracking your progress.
       </p>
       <Button onClick={onCreateGoal} className="mt-2 bg-[#D4A574] hover:bg-[#C9965E] text-white">
         Create goal

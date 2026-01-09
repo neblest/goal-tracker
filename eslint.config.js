@@ -20,6 +20,14 @@ const baseConfig = tseslint.config({
   rules: {
     "no-console": "warn",
     "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
   },
 });
 
@@ -53,6 +61,7 @@ const reactConfig = tseslint.config({
     ...eslintPluginReactHooks.configs.recommended.rules,
     "react/react-in-jsx-scope": "off",
     "react-compiler/react-compiler": "error",
+    "react/prop-types": "off",
   },
 });
 
@@ -62,5 +71,18 @@ export default tseslint.config(
   jsxA11yConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
-  eslintPluginPrettier
+  eslintPluginPrettier,
+  // Ignore generated/binary files
+  {
+    ignores: ["src/db/database.types.ts", "**/*.test.ts", "tests/**/*"],
+  },
+  // Allow console in examples and tests
+  {
+    files: ["**/*.examples.ts", "**/*.test.ts", "tests/**/*", "src/pages/api/**/*"],
+    rules: {
+      "no-console": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  }
 );

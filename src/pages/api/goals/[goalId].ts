@@ -117,7 +117,6 @@ export async function GET(context: APIContext) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("GET /api/goals/:goalId error:", error);
 
     // Handle specific service errors
@@ -291,7 +290,6 @@ export async function PATCH(context: APIContext) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("PATCH /api/goals/:goalId error:", error);
 
     // Handle specific service errors
@@ -421,7 +419,6 @@ export async function DELETE(context: APIContext) {
       status: 204,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("DELETE /api/goals/:goalId error:", error);
 
     // Handle specific service errors

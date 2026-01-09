@@ -129,7 +129,7 @@ export async function POST(context: APIContext) {
     });
   } catch (error) {
     // Step 5: Error handling
-    // eslint-disable-next-line no-console
+
     console.error("Error in POST /api/goals/sync-statuses:", error);
 
     // Map known error codes

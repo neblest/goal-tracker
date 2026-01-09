@@ -153,7 +153,6 @@ export async function PATCH(context: APIContext): Promise<Response> {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Error updating progress entry:", error);
 
     if (error instanceof Error) {
@@ -290,7 +289,6 @@ export async function DELETE(context: APIContext): Promise<Response> {
       status: 204,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Error deleting progress entry:", error);
 
     if (error instanceof Error) {

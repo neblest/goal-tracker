@@ -21,7 +21,7 @@ export function GoalAiSummarySection({
   status,
   aiSummary,
   entriesCount,
-  reflectionNotes,
+  reflectionNotes: _reflectionNotes,
   onSave,
   onAiGenerated,
 }: GoalAiSummarySectionProps) {

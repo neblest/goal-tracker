@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { apiFetchJson } from "@/lib/api/apiFetchJson";
-import { formatDate, formatDateTime, fromISODateString } from "@/lib/utils/dateFormat";
+import { formatDate, fromISODateString } from "@/lib/utils/dateFormat";
 import type { GetGoalHistoryResponseDto, GoalHistoryItemDto, GoalStatus } from "@/types";
 
 interface GoalHistorySectionProps {

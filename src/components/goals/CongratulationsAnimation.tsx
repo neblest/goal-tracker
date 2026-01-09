@@ -72,7 +72,14 @@ export function CongratulationsAnimation({ isOpen, onClose, userName = "User" }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === "Escape" ? onClose() : null)}
+      role="button"
+      tabIndex={0}
+      aria-label="Close congratulations modal"
+    >
       {/* Floating Icons */}
       {icons.map((icon) => (
         <div
@@ -103,7 +110,7 @@ export function CongratulationsAnimation({ isOpen, onClose, userName = "User" }:
         </h1>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes icon-float {
           0% {
             opacity: 0;

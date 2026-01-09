@@ -67,9 +67,9 @@ export function LoginForm() {
     setValues((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
-      delete (next as Record<string, string | undefined>)[field as string];
+      Reflect.deleteProperty(next as Record<string, string | undefined>, field as string);
       if (field !== "form") {
-        delete next.form;
+        Reflect.deleteProperty(next, "form");
       }
       return next;
     });
@@ -187,7 +187,7 @@ export function LoginForm() {
 
       {/* Registration link */}
       <div className="text-center text-sm text-[#8B7E74]">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <a href="/register" className="font-medium text-[#D4A574] hover:underline">
           Sign up
         </a>

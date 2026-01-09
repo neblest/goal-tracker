@@ -52,7 +52,7 @@ export function GoalEditableFieldsSection({
     setFormState((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
-      delete (next as Record<string, string | undefined>)[field];
+      Reflect.deleteProperty(next as Record<string, string | undefined>, field);
       return next;
     });
     setFormError(null);

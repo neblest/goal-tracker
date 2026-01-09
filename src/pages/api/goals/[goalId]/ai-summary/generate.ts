@@ -279,7 +279,6 @@ export async function POST(context: APIContext): Promise<Response> {
           );
         }
         default: {
-          // eslint-disable-next-line no-console
           console.error("Unexpected error generating AI summary:", error);
           return new Response(
             JSON.stringify({
@@ -298,7 +297,7 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     // Fallback for non-Error exceptions
-    // eslint-disable-next-line no-console
+
     console.error("Unknown error generating AI summary:", error);
     return new Response(
       JSON.stringify({

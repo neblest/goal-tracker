@@ -228,7 +228,6 @@ export async function POST(context: APIContext) {
 
         case "database_error":
         default:
-          // eslint-disable-next-line no-console
           console.error("Unexpected error in retry endpoint:", error);
           return new Response(
             JSON.stringify({
@@ -246,7 +245,7 @@ export async function POST(context: APIContext) {
     }
 
     // Fallback for non-Error exceptions
-    // eslint-disable-next-line no-console
+
     console.error("Unexpected non-Error exception in retry endpoint:", error);
     return new Response(
       JSON.stringify({

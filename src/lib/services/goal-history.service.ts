@@ -85,7 +85,7 @@ export async function listGoalHistory(
   // Step 6: Map to GoalHistoryItemDto with computed current_value
   // Ensure explicit ordering based on query.order (default handled by caller)
   const orderedHistory = Array.isArray(historyData) ? historyData.slice() : [];
-  orderedHistory.sort((a: any, b: any) => {
+  orderedHistory.sort((a: { created_at: string }, b: { created_at: string }) => {
     const ta = new Date(a.created_at).getTime();
     const tb = new Date(b.created_at).getTime();
     // If query.order === 'desc' -> newest first

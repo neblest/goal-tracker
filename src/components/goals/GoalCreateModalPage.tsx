@@ -23,7 +23,7 @@ export default function GoalCreateModalPage({
   open,
   onOpenChange,
   initialValues = {},
-  onSuccess,
+  onSuccess: _onSuccess,
 }: GoalCreateModalPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 

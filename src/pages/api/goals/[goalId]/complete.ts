@@ -151,7 +151,6 @@ export async function PATCH(context: APIContext): Promise<Response> {
           );
         }
         default: {
-          // eslint-disable-next-line no-console
           console.error("Unexpected error completing goal:", error);
           return new Response(
             JSON.stringify({
@@ -170,7 +169,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
     }
 
     // Fallback for non-Error exceptions
-    // eslint-disable-next-line no-console
+
     console.error("Unknown error completing goal:", error);
     return new Response(
       JSON.stringify({

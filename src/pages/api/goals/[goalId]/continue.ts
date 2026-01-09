@@ -168,7 +168,6 @@ export async function POST(context: APIContext) {
       }
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("POST /api/goals/:goalId/continue error:", error);
 
     // Handle specific service errors

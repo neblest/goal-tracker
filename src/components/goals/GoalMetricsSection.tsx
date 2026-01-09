@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiError } from "@/lib/api/apiFetchJson";
 import { normalizeTrim, validateDeadlineFuture, validateGoalName, validateTargetValue } from "@/lib/goals/validation";
-import { formatDate, formatDateTime } from "@/lib/utils/dateFormat";
+import { formatDate } from "@/lib/utils/dateFormat";
 import type { GoalStatus, UpdateGoalCommand } from "@/types";
 
 interface GoalMetricsSectionProps {
@@ -28,7 +28,7 @@ interface GoalMetricsSectionProps {
   onSubmit: (command: UpdateGoalCommand) => Promise<void>;
   onAbandon: (reason: string) => Promise<void>;
   onComplete?: () => Promise<void>;
-  onCreateGoal?: (initialValues: any) => void;
+  onCreateGoal?: (initialValues: Record<string, unknown>) => void;
 }
 
 export function GoalMetricsSection({
@@ -68,7 +68,7 @@ export function GoalMetricsSection({
     setFormState((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
-      delete next[field];
+      Reflect.deleteProperty(next, field);
       return next;
     });
   }, []);
@@ -129,7 +129,7 @@ export function GoalMetricsSection({
       await onAbandon(selectedReason);
       setIsAbandonModalOpen(false);
       setSelectedReason("");
-    } catch (error) {
+    } catch (_error) {
       // Error handling can be added if needed
     } finally {
       setSubmitting(false);
@@ -268,7 +268,7 @@ export function GoalMetricsSection({
                     <Button
                       onClick={() => {
                         if (!onCreateGoal) return;
-                        const initialValues: any = {};
+                        const initialValues: Record<string, unknown> = {};
                         if (goalId) initialValues.parent_goal_id = goalId;
                         if (goalName) initialValues.name = goalName;
                         if (targetValue) initialValues.target_value = targetValue;
@@ -288,7 +288,7 @@ export function GoalMetricsSection({
                     <Button
                       onClick={() => {
                         if (!onCreateGoal) return;
-                        const initialValues: any = {};
+                        const initialValues: Record<string, unknown> = {};
                         if (goalId) initialValues.parent_goal_id = goalId;
                         if (goalName) initialValues.name = goalName;
                         if (targetValue) initialValues.target_value = targetValue;

@@ -164,7 +164,6 @@ export async function GET(context: APIContext): Promise<Response> {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Error listing goal progress:", error);
 
     // Map service errors to HTTP responses
@@ -335,7 +334,6 @@ export async function POST(context: APIContext): Promise<Response> {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Error creating goal progress:", error);
 
     // Map service errors to HTTP responses

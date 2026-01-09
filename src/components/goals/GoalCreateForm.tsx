@@ -59,7 +59,7 @@ export function GoalCreateForm({ initialValues, isSubmitting = false, onSubmit, 
     setValues((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
-      delete (next as Record<string, string | undefined>)[field as string];
+      Reflect.deleteProperty(next as Record<string, string | undefined>, field as string);
       return next;
     });
     setFormError(null);

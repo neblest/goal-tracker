@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiFetchJson, ApiError } from "@/lib/api/apiFetchJson";
-import { formatDate, formatDateTime } from "@/lib/utils/dateFormat";
+import { formatDateTime } from "@/lib/utils/dateFormat";
 import type {
   CreateGoalProgressCommand,
   CreateGoalProgressResponseDto,
@@ -146,7 +146,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
     }
   }, [canEdit, createDraft.notes, createDraft.value, fetchProgress, goalId, onProgressChanged]);
 
-  const startEdit = useCallback((entry: GoalProgressEntryDto) => {
+  const _startEdit = useCallback((entry: GoalProgressEntryDto) => {
     setEditingId(entry.id);
     setEditingDraft({ value: entry.value, notes: entry.notes ?? "" });
   }, []);
@@ -222,16 +222,7 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
     } finally {
       setPendingId(null);
     }
-  }, [
-    selectedEntry,
-    canEdit,
-    modalDraft.value,
-    modalDraft.notes,
-    goalId,
-    onProgressChanged,
-    fetchProgress,
-    pagination.page,
-  ]);
+  }, [selectedEntry, canEdit, modalDraft.value, modalDraft.notes, onProgressChanged, fetchProgress, pagination.page]);
 
   const handleDelete = useCallback(
     async (entryId: string) => {
@@ -492,12 +483,20 @@ export function GoalProgressSection({ goalId, goalStatus, onProgressChanged }: G
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-[#4A3F35]">Created at</label>
-                <p className="text-sm text-[#8B7E74]">{formatDateTime(selectedEntry.created_at)}</p>
+                <label htmlFor="entry-created-at" className="text-sm font-medium text-[#4A3F35]">
+                  Created at
+                </label>
+                <p id="entry-created-at" className="text-sm text-[#8B7E74]">
+                  {formatDateTime(selectedEntry.created_at)}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-[#4A3F35]">Updated at</label>
-                <p className="text-sm text-[#8B7E74]">{formatDateTime(selectedEntry.updated_at)}</p>
+                <label htmlFor="entry-updated-at" className="text-sm font-medium text-[#4A3F35]">
+                  Updated at
+                </label>
+                <p id="entry-updated-at" className="text-sm text-[#8B7E74]">
+                  {formatDateTime(selectedEntry.updated_at)}
+                </p>
               </div>
             </div>
           )}
